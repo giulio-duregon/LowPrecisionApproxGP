@@ -36,6 +36,7 @@ class VarPrecisionInducingPointKernel(Kernel):
         self.likelihood = likelihood
         self._dtype_to_set = dtype
 
+        # Added check for torch.dtypes
         if not isinstance(dtype, torch.dtype):
             raise ValueError(
                 f"Dtype must be instance of torch.dtype, {dtype} is of instance {type(dtype)}"

@@ -14,7 +14,7 @@ from gpytorch.utils.memoize import (
 
 from var_precision_inducing_point_kernel import VarPrecisionInducingPointKernel
 
-
+# TODO: Take in dtype as constructor arg, cast everything as necessary
 class VarPrecisionSGPRPredictionStrategy(DefaultPredictionStrategy):
     @property
     @cached(name="covar_cache")

@@ -7,7 +7,7 @@ from gpytorch.likelihoods import (
 )
 from gpytorch.mlls.added_loss_term import AddedLossTerm
 
-
+# TODO: Take in dtype as constructor arg, cast everything as necessary
 class VarPrecisionInducingPointKernelAddedLossTerm(AddedLossTerm):
     r"""
     An added loss term that computes the additional "regularization trace term" of the SGPR objective function.
