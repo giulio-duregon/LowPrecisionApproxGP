@@ -23,14 +23,13 @@ logging.basicConfig(
 
 
 def greedy_train(
-    train_data: Tuple,
+    train_data: Tuple[torch.Tensor, torch.Tensor],
     model: ExactGP,
     mll: ExactMarginalLogLikelihood,
     max_iter: int = 50,
     max_inducing_points: int = 50,
 ) -> ExactGP:
-    train_x: torch.Tensor
-    train_y: torch.Tensor
+
     train_x, train_y = train_data
 
     inducing_point_candidates = train_x.detach().clone()
@@ -41,12 +40,12 @@ def greedy_train(
         {max_inducing_points} max inducing points"
     )
 
-    for i in range(max_inducing_points):
+    for i in range(max_iter):
         # If haven't gotten any inducing points, grab a random one
         if len(inducing_point_candidates) == len(train_x):
             random_index = np.random.randint(0, len(train_x))
             first_inducing_point = (
-                train_x[random_index].detach().clone().resize(1)
+                inducing_point_candidates[random_index].detach().clone().reshape(1, -1)
             )  # Get
             model.covar_module.inducing_points = torch.nn.Parameter(
                 first_inducing_point, requires_grad=False
@@ -62,7 +61,7 @@ def greedy_train(
 
         elif len(model.covar_module.inducing_points) >= max_inducing_points:
             logging.info(
-                f"Reached limit of inducing points: we have {len(model.covar_module.inducing_points)} \
+                f"Breaking out of training loop at iteration {i+1}/{max_iter}. Reached limit of inducing points: we have {len(model.covar_module.inducing_points)} \
                 points with a maximum of {max_inducing_points}"
             )
             break
@@ -72,7 +71,9 @@ def greedy_train(
             )
             if inducing_point_candidates is None:
                 # We've failed to find a point that increases our Likelihood
-                logging.info("Failed to add inducing point, breaking")
+                logging.info(
+                    f"Breaking out of training loop at iteration {i}/{max_iter}. Failed to add inducing point."
+                )
                 break
 
         # Zero gradients from previous iteration
@@ -80,11 +81,13 @@ def greedy_train(
         mll.zero_grad()
         # Output from model
         output = model(train_x)
-        # Calc loss and backprop gradients
+        # Calc average loss and backprop gradients
         loss = -mll(output, train_y)
-        loss.backward()
+        loss.mean().backward()
 
-        logging.info(f"Iteration: {(i+1)/max_iter} - Loss: {loss.item()}")
+        logging.info(
+            f"Iteration: {i+1}/{max_iter} - Average Loss: {loss.mean().item()}"
+        )
         torch.cuda.empty_cache()
 
         optimizer.step()
