@@ -5,8 +5,10 @@ export DATA_DIR="$PROJ_HOME/data"
 export BIKES_FOLDER="$DATA_DIR/bikes"
 export ENERGYFOLDER="$DATA_DIR/energy"
 export ROAD3D_FOLDER="$DATA_DIR/road3d"
+export EXPERIMENT_OUTPUTS="$PROJ_HOME/Experiments"
 
 mkdir -p $DATA_DIR
 mkdir -p $BIKES_FOLDER
 mkdir -p $ENERGYFOLDER
 mkdir -p $ROAD3D_FOLDER
+mkdir -p $EXPERIMENT_OUTPUTS
