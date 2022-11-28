@@ -1,3 +1,4 @@
+from audioop import maxpp
 from datetime import date
 from typing import Tuple
 import torch
@@ -16,7 +17,6 @@ if experiment_folder_path is None:
     )
 
 file_destination = f"{experiment_folder_path}/{date.today()}.log"
-print(file_destination)
 logging.basicConfig(
     filename=file_destination, filemode="a", encoding="utf-8", level=logging.INFO
 )
@@ -28,15 +28,24 @@ def greedy_train(
     mll: ExactMarginalLogLikelihood,
     max_iter: int = 50,
     max_inducing_points: int = 50,
+    model_name: str = None,
+    dtype: torch.dtype = None,
 ) -> ExactGP:
 
+    # Create model name for logging purposes
+    if model_name is None:
+        model_name = f"{date.today()}-{model.__class__.__name__}-{dtype}-{max_iter}-{max_inducing_points}"
+
+    logging.info(
+        f"Model : {model_name}, Message : Pre-Training model.state_dict {model.state_dict()}"
+    )
     train_x, train_y = train_data
 
     inducing_point_candidates = train_x.detach().clone()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
 
     logging.info(
-        f"Starting training loop, {max_iter} max iterations, \
+        f"Model : {model_name}, Message : Starting training loop, {max_iter} max iterations, \
         {max_inducing_points} max inducing points"
     )
 
@@ -61,7 +70,7 @@ def greedy_train(
 
         elif len(model.covar_module.inducing_points) >= max_inducing_points:
             logging.info(
-                f"Breaking out of training loop at iteration {i+1}/{max_iter}. Reached limit of inducing points: we have {len(model.covar_module.inducing_points)} \
+                f"Model : {model_name}, Message : Breaking out of training loop at iteration {i+1}/{max_iter}. Reached limit of inducing points: we have {len(model.covar_module.inducing_points)} \
                 points with a maximum of {max_inducing_points}"
             )
             break
@@ -72,7 +81,7 @@ def greedy_train(
             if inducing_point_candidates is None:
                 # We've failed to find a point that increases our Likelihood
                 logging.info(
-                    f"Breaking out of training loop at iteration {i}/{max_iter}. Failed to add inducing point."
+                    f"Model : {model_name}, Message : Breaking out of training loop at iteration {i}/{max_iter}. Failed to add inducing point."
                 )
                 break
 
@@ -86,7 +95,7 @@ def greedy_train(
         loss.mean().backward()
 
         logging.info(
-            f"Iteration: {i+1}/{max_iter} - Average Loss: {loss.mean().item()}"
+            f"Model : {model_name}, Message : Iteration: {i+1}/{max_iter} - Average Loss: {loss.mean().item()}"
         )
         torch.cuda.empty_cache()
 
