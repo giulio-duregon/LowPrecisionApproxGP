@@ -1,5 +1,5 @@
 import torch
-
+import gpytorch
 from linear_operator import to_linear_operator
 from linear_operator.operators import (
     AddedDiagLinearOperator,
@@ -12,10 +12,27 @@ from gpytorch.utils.memoize import (
     cached,
 )
 
-from inducing_point_kernel import VarPrecisionInducingPointKernel
 
 # TODO: Take in dtype as constructor arg, cast everything as necessary
 class VarPrecisionSGPRPredictionStrategy(DefaultPredictionStrategy):
+    def __init__(
+        self,
+        train_inputs,
+        train_prior_dist,
+        train_labels,
+        likelihood,
+        root=None,
+        inv_root=None,
+        dtype=None,
+    ):
+        super().__init__(
+            train_inputs, train_prior_dist, train_labels, likelihood, root, inv_root
+        )
+        if dtype is None:
+            self._dtype_to_set = torch.float64
+        else:
+            self._dtype_to_set = dtype
+
     @property
     @cached(name="covar_cache")
     def covar_cache(self):
@@ -63,7 +80,7 @@ class VarPrecisionSGPRPredictionStrategy(DefaultPredictionStrategy):
         # If we're in lazy evaluation mode, let's use the base kernel of the SGPR output to compute the prior covar
         test_test_covar = joint_covar[..., self.num_train :, self.num_train :]
         if isinstance(test_test_covar, LazyEvaluatedKernelTensor) and isinstance(
-            test_test_covar.kernel, VarPrecisionInducingPointKernel
+            test_test_covar.kernel, gpytorch.kernels.Kernel
         ):
             test_test_covar = LazyEvaluatedKernelTensor(
                 test_test_covar.x1,

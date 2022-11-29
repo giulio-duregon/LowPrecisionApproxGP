@@ -1,3 +1,4 @@
+import gpytorch
 from gpytorch.means import ConstantMean
 from gpytorch.kernels import ScaleKernel, RBFKernel, InducingPointKernel
 from gpytorch.distributions import MultivariateNormal

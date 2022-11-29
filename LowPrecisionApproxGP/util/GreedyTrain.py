@@ -5,21 +5,21 @@ import logging
 from gpytorch.models import ExactGP
 from gpytorch.mlls import ExactMarginalLogLikelihood
 import numpy as np
-from GreedySelector import greedy_select_points
+from .GreedySelector import greedy_select_points
 import os
 from datetime import date
 import gpytorch
 
-experiment_folder_path = os.getenv("EXPERIMENT_OUTPUTS")
-if experiment_folder_path is None:
-    raise ValueError(
-        "No Enviroment Variable Value for EXPERIMENT_OUTPUTS, make sure to run source setup.sh"
-    )
+# experiment_folder_path = os.getenv("EXPERIMENT_OUTPUTS")
+# if experiment_folder_path is None:
+#     raise ValueError(
+#         "No Enviroment Variable Value for EXPERIMENT_OUTPUTS, make sure to run source setup.sh"
+#     )
 
-file_destination = f"{experiment_folder_path}/{date.today()}.log"
-logging.basicConfig(
-    filename=file_destination, filemode="a", encoding="utf-8", level=logging.INFO
-)
+# file_destination = f"{experiment_folder_path}/{date.today()}.log"
+# logging.basicConfig(
+#     filename=file_destination, filemode="a", encoding="utf-8", level=logging.INFO
+# )
 
 
 def greedy_train(
@@ -35,6 +35,9 @@ def greedy_train(
     # Create model name for logging purposes
     if model_name is None:
         model_name = f"{date.today()}-{model.__class__.__name__}-{dtype}-{max_iter}-{max_inducing_points}"
+
+    if dtype is None:
+        dtype = torch.float64
 
     logging.info(
         f"Model : {model_name}, Message : Pre-Training model.state_dict {model.state_dict()}"
