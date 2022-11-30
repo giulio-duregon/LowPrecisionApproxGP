@@ -3,8 +3,12 @@ Github repository for Low Precision Approximate Gaussian Process Inference - a g
 
 ## Workflow:
 ```bash
+# Set up enviroment variables, pull in data
 > source setup.sh
 > bash scripts/getData.sh
+# Run Experiments
+> python LowPrecisionApproxGP/model_runner.py -l True ## TODO: Finish this with all the args
+
 ```
 
 ## TODO: 
