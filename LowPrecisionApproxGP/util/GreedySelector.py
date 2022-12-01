@@ -34,6 +34,7 @@ def greedy_select_points(
         output = model(train_x)
         current_model_mll = mll(output, train_y)
 
+
     # While we haven't found a point
     for index in random_indices:
         rnd_point = inducing_point_candidates[index].reshape(1, -1)

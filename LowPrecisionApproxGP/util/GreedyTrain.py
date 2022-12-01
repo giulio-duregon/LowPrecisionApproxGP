@@ -5,6 +5,7 @@ import logging
 from gpytorch.models import ExactGP
 from gpytorch.mlls import ExactMarginalLogLikelihood
 import numpy as np
+from .GreedyMaxSelector import greedy_select_points_max
 from .GreedySelector import greedy_select_points
 import os
 from datetime import date
@@ -30,6 +31,9 @@ def greedy_train(
     max_inducing_points: int = 50,
     model_name: str = None,
     dtype: torch.dtype = None,
+    Use_Max: Bool = True,               #If you want to find max or just the first increasing inducing point
+    J: int = 0,                         #Use J=0 if you want to find maximizing MLL inducing point over all candidates
+    max_Js: int = 10,                   #Number of J sets you want to explore without an increasing inducing point before stopping
 ) -> ExactGP:
 
     # Create model name for logging purposes
@@ -51,6 +55,8 @@ def greedy_train(
         f"Model : {model_name}, Message : Starting training loop, {max_iter} max iterations, \
         {max_inducing_points} max inducing points"
     )
+
+    Js = 0
 
     with gpytorch.settings.linalg_dtypes(default=dtype):
         for i in range(max_iter):
@@ -82,10 +88,25 @@ def greedy_train(
                 )
                 break
             else:
-                inducing_point_candidates = greedy_select_points(
-                    model, inducing_point_candidates, train_x, train_y, mll
-                )
+                if Use_Max:
+                    inducing_point_candidates = greedy_select_points_max(
+                        model, inducing_point_candidates, train_x, train_y, mll, J
+                    )
+                else:
+                    inducing_point_candidates = greedy_select_points(
+                        model, inducing_point_candidates, train_x, train_y, mll
+                    )
+
                 if inducing_point_candidates is None:
+                    if J != 0 and Use_Max:
+                        # In the J set of points we chose we did not see any increase in the MLL
+                        Js += 1
+                        # if we have not seen an increasing inducing point in all the J sets, then break.
+                        if Js > max_Js:
+                            logging.info(
+                                f"Model : {model_name}, Message : Breaking out of training loop at iteration {i}/{max_iter}. Failed to add inducing point in max number of J sets."
+                            )
+                            break
                     # We've failed to find a point that increases our Likelihood
                     logging.info(
                         f"Model : {model_name}, Message : Breaking out of training loop at iteration {i}/{max_iter}. Failed to add inducing point."
