@@ -59,12 +59,11 @@ def greedy_select_points_max(
         # Get MLL for model with candidate inducing point
         with torch.no_grad():
             rnd_point_mll = mll(model(train_x), train_y)
-
         # If MLL is greater than current max, save index
         if rnd_point_mll.sum() > rnd_point_mll_max:
             rnd_point_mll_max = rnd_point_mll.sum()
             max_index = index
-
+        print(rnd_point_mll_max)
     # If after full loop new MLL max is greater than old MLL, update
     if rnd_point_mll_max > current_model_mll.sum():
 
