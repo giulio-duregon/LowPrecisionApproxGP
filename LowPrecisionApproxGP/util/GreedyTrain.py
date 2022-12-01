@@ -31,7 +31,7 @@ def greedy_train(
     max_inducing_points: int = 50,
     model_name: str = None,
     dtype: torch.dtype = None,
-    Use_Max: Bool = True,               #If you want to find max or just the first increasing inducing point
+    Use_Max: bool = True,               #If you want to find max or just the first increasing inducing point
     J: int = 0,                         #Use J=0 if you want to find maximizing MLL inducing point over all candidates
     max_Js: int = 10,                   #Number of J sets you want to explore without an increasing inducing point before stopping
 ) -> ExactGP:
