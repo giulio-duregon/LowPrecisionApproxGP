@@ -39,13 +39,21 @@ def setup_logging(logging_directory_path=None):
     # Format save path to todays date
     output_path = f"{logging_directory_path}/ModelIndex.log"
     print(f"Saving Model ID/Params to Logging Output to -> {output_path}")
+    loggerName = "model_runner.py"
+    logFormatter = logging.Formatter(fmt="%(asctime)s %(message)s")
 
-    return logging.basicConfig(
-        filename=output_path,
-        filemode="a",
-        encoding="utf-8",
-        level=logging.INFO,
-    )
+    # create logger
+    logger = logging.getLogger(loggerName)
+    logger.setLevel(logging.INFO)
+
+    # create console handler
+    consoleHandler = logging.FileHandler(output_path, mode="a", encoding="utf-8")
+    consoleHandler.setLevel(logging.INFO)
+    consoleHandler.setFormatter(logFormatter)
+
+    # Add console handler to logger
+    logger.addHandler(consoleHandler)
+    return logger
 
 
 def parse_args():
@@ -84,7 +92,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(**kwargs):
+def main(logger, **kwargs):
     # Get device, make sure we're not running in half precision if on cpu
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if kwargs.get("dtype") == "half" and device.type == "cpu":
@@ -137,7 +145,7 @@ def main(**kwargs):
     )
     end_time = timer()
     time_delta = timedelta(seconds=end_time - start_time)
-    logging.info(
+    logger.info(
         f"Model_ID:{MODEL_RND_ID}, Start_Time:{start_time}, End_Time:{end_time}, Time_Delta:{time_delta}"
     )
 
@@ -154,8 +162,8 @@ if __name__ == "__main__":
 
     # Set up logging if necessary
     if args.pop("logging", None):
-        setup_logging(args.pop("logging_output_path", None))
-        logging.info(f" Model_ID:{MODEL_RND_ID}, Date:{date.today()}, Args:{args}")
+        logger = setup_logging(args.pop("logging_output_path", None))
+        logger.info(f" Model_ID:{MODEL_RND_ID}, Date:{date.today()}, Args:{args}")
 
     # Execute main
-    main(**args)
+    main(logger, **args)
