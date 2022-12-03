@@ -78,7 +78,9 @@ def parse_args():
     parser.add_argument("-sfp", "--save_model_file_path", type=str)
     parser.add_argument("-l", "--logging", type=bool)
     parser.add_argument("-lop", "--logging_output_path", type=str)
-
+    parser.add_argument("-m", "--use_max", type=bool, default=False)
+    parser.add_argument("-j", "--j", type=int, default=0)
+    parser.add_argument("-mj", "--max_js", type=int, default=10)
     return parser.parse_args()
 
 
@@ -91,11 +93,12 @@ def main(**kwargs):
     # Overwrite datatype string argument to torch.dtype object
     torch_dtype = DTYPE_FACTORY[kwargs["dtype"]]
 
-    # TODO: Dataset factory, Kernel Factory, get dataset, kernel, build model, train, save
-    dataset = DATASET_FACTORY[kwargs.get("dataset")]()
-
-    likelihood = gpytorch.likelihoods.GaussianLikelihood()
+    # Get Data
+    train_data, eval_data = DATASET_FACTORY[kwargs.get("dataset")]()
     base_kernel = KERNEL_FACTORY[kwargs.get("base_kernel_type")]()
+
+    # Set up Likelihood, mean/covar module, and model
+    likelihood = gpytorch.likelihoods.GaussianLikelihood()
     covar_module = VarPrecisionInducingPointKernel(
         base_kernel=base_kernel,
         likelihood=likelihood,
@@ -104,15 +107,34 @@ def main(**kwargs):
     )
     mean_module = gpytorch.means.ConstantMean()
     model = VarPrecisionModel(
-        train_x, train_y, likelihood, torch_dtype, mean_module, covar_module
+        *train_data,  # train_x, train_y
+        likelihood=likelihood,
+        dtype=torch_dtype,
+        mean_module=mean_module,
+        covar_module=covar_module,
     )
+
+    # Set up MLL and train
+    mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
+    model.train()
+    likelihood.train()
 
     # Time Training
     start_time = timer()
-    GreedyTrain.greedy_train(model, ...)
+    GreedyTrain.greedy_train(
+        train_data=train_data,
+        model=model,
+        mll=mll,
+        max_iter=kwargs.get("training_iter"),
+        max_inducing_points=kwargs.get("max_inducing_points"),
+        model_name=MODEL_RND_ID,
+        dtype=torch_dtype,
+        Use_Max=kwargs.get("use_max"),
+        J=kwargs.get("j"),
+        max_Js=kwargs.get("max_js"),
+    )
     end_time = timer()
     time_delta = timedelta(seconds=end_time - start_time)
-
     logging.info(
         f"Model_ID:{MODEL_RND_ID}, Start_Time:{start_time}, End_Time:{end_time}, Time_Delta:{time_delta}"
     )
