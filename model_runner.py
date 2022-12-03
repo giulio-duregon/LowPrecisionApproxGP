@@ -23,7 +23,8 @@ DEFAULT_MODEL_SAVE_PATH = f"{os.getcwd()}/{MODEL_RND_ID}"
 
 def setup_logging(logging_directory_path=None):
     """
-    Helper function that sets up logging for running and recording experiment results
+    Helper function that sets up logging for running and recording experiment results and setting up
+    a model index
     """
     # Set up default behavior if no specific logging directory was passed
     if logging_directory_path is None:

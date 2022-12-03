@@ -7,12 +7,12 @@ from sklearn.model_selection import train_test_split
 from LowPrecisionApproxGP.util.dtype_converter import convert_tensors_to_dtype
 import pandas as pd
 
-
+# Constants for dataset locations created from `scripts/getData.sh`
 ENERGY_DATASET_PATH = "data/energy/energy.csv"
 BIKES_DATASET_PATH = "data/bikes/hour.csv"
 ROAD3D_DATASET_PATH = "data/road3d/3droad.txt"
 
-
+# Helper functions for Kernel Selection (See Factories Below)
 def get_base_kernel():
     return ScaleKernel(RBFKernel())
 
@@ -31,8 +31,11 @@ def get_composite_kernel():
 
 def load_bikes(dtype: torch.dtype = torch.float64):
     """
-    If device == 'cpu' returns tuple of of (train),(test) data i.e. (x_train, y_train), (x_test,y_test)
-    If device == 'gpu' returns tuple of dataloaders, (train_loader, test_loader)
+    #### Loads bikes dataset from `BIKES_DATASET_PATH`, converts to a `dtype` of type `torch.dtype`
+    #### Train/Test split is determined by `test_size`
+    ## Return Types
+    - If device == 'cpu' returns tuple of of (train),(test) data i.e. (x_train, y_train), (x_test,y_test)
+    - If device == 'gpu' returns tuple of dataloaders, (train_loader, test_loader)
     """
     # Load data, get train test splits
     df = pd.read_csv(BIKES_DATASET_PATH)
@@ -68,6 +71,13 @@ def load_bikes(dtype: torch.dtype = torch.float64):
 
 
 def load_energy(dtype: torch.dtype, test_size: float = 0.2):
+    """
+    #### Loads energy dataset from `ENERGY_DATASET_PATH`, converts to a `dtype` of type `torch.dtype`
+    #### Train/Test split is determined by `test_size`
+    ## Return Types
+    - If device == 'cpu' returns tuple of of (train),(test) data i.e. (x_train, y_train), (x_test,y_test)
+    - If device == 'gpu' returns tuple of dataloaders, (train_loader, test_loader)
+    """
     # Load data, get train test splits
     df = pd.read_csv(ENERGY_DATASET_PATH)
     train, test = train_test_split(df, test_size=test_size)
@@ -103,9 +113,16 @@ def load_energy(dtype: torch.dtype, test_size: float = 0.2):
 
 
 def load_road3d(dtype: torch.dtype, test_size: float = 0.2):
+    """
+    #### Loads 3droad dataset from `ROAD3D_DATASET_PATH`, converts to a `dtype` of type `torch.dtype`
+    #### Train/Test split is determined by `test_size`
+    ## Return Types
+    - If device == 'cpu' returns tuple of of (train),(test) data i.e. (x_train, y_train), (x_test,y_test)
+    - If device == 'gpu' returns tuple of dataloaders, (train_loader, test_loader)
+    """
     # Load data, get train test splits
     headers = {0: "OSM_ID", 1: "LONGITUDE", 2: "LATITUDE", 3: "ALTITUDE"}
-    df = pd.read_csv("data/road3d/3droad.txt", header=None)
+    df = pd.read_csv(ROAD3D_DATASET_PATH, header=None)
     df.rename(headers, axis=1, inplace=True)
     train, test = train_test_split(df, test_size=test_size)
 
@@ -136,6 +153,7 @@ def load_road3d(dtype: torch.dtype, test_size: float = 0.2):
     return (x_train, y_train), (x_test, y_test)
 
 
+# Factories for model running
 KERNEL_FACTORY = {
     "base": get_base_kernel,
     "composite": get_composite_kernel,

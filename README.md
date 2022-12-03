@@ -7,8 +7,7 @@ Github repository for Low Precision Approximate Gaussian Process Inference - a g
 > source setup.sh
 > bash scripts/getData.sh
 # Run Experiments
-> python LowPrecisionApproxGP/model_runner.py -l True ## TODO: Finish this with all the args
-
+> python model_runner.py -l True -d <dataset> -dt <data_type> -bk <base_kernel> ...
 ```
 
 ## TODO: 
@@ -42,3 +41,7 @@ $$J \subset \{n-m\}$$
 | `sfp` | `save_model_file_path` |  Output destination for saving model post training. |
 | `l` | `logging` |  Boolean for enabling logging. |
 |`lop` | `logging_output_path` |  Model Training logging output destination file path. |
+|`m` | `use_max` | Instructs the model to use O(n) search to find max MLL inducing point to be selected|
+|`j` | `j` | #TODO: Not Sure, Paul pls explain|
+| `mj` | `max_js` | Maximum size of subset of candidate inducing points to be considered during greedy selection|
+|||
