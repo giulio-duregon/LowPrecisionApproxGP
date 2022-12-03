@@ -1,3 +1,4 @@
+from json import load
 import pytest
 import torch
 import gpytorch
@@ -7,6 +8,7 @@ from LowPrecisionApproxGP.util.GreedyTrain import greedy_train
 from LowPrecisionApproxGP.model.inducing_point_kernel import (
     VarPrecisionInducingPointKernel,
 )
+from LowPrecisionApproxGP import load_bikes
 
 
 # torch.float16 not possible for cpu only
@@ -65,3 +67,21 @@ def test_train_dtypes(dtype, mean_module, covar_module):
     assert x_train.dtype == dtype
     assert y_train.dtype == dtype
     assert model.covar_module.inducing_points.dtype == dtype
+
+
+@pytest.mark.parametrize("dtype",dtypes)
+def test_get_bikes(dtype):
+    if torch.cuda.is_available():
+        train_dataloader, test_dataloader = load_bikes(dtype)
+        assert train_dataloader.dtype == dtype
+        assert test_dataloader.dtype == dtype
+        
+    else:
+        train, test = load_bikes(dtype)
+        x_train, y_train = train
+        x_test, y_test = test
+        assert x_train.dtype == dtype
+        assert y_train.dtype == dtype
+        assert x_test.dtype == dtype
+        assert y_test.dtype == dtype
+    

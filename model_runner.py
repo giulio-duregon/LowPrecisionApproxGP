@@ -102,7 +102,7 @@ def main(**kwargs):
     covar_module = VarPrecisionInducingPointKernel(
         base_kernel=base_kernel,
         likelihood=likelihood,
-        inducing_points=torch.zeros(1),
+        inducing_points=torch.empty(1),
         dtype=torch_dtype,
     )
     mean_module = gpytorch.means.ConstantMean()
