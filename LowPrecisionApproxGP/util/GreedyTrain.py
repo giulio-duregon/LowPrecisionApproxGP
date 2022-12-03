@@ -15,9 +15,11 @@ import os
 
 def get_training_logger(logging_output_path=None, model_name=None) -> logging.Logger:
     if logging_output_path is None:
-        logging_output_path = os.getenv(
-            "EXPERIMENT_OUTPUTS", default=(os.getcwd() + "/Experiments/")
-        ) + (model_name if model_name else str(date.today()))
+        logging_output_path = (
+            os.getenv("EXPERIMENT_OUTPUTS", default=(os.getcwd() + "/Experiments"))
+            + "/"
+            + (model_name if model_name else str(date.today()))
+        )
 
     loggerName = "GreedyTrain.py"
     logFormatter = logging.Formatter(fmt="%(asctime)s %(message)s")

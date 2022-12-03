@@ -17,7 +17,7 @@ from LowPrecisionApproxGP.model.models import VarPrecisionModel
 
 
 # Set up unique model id
-MODEL_RND_ID = uuid.uuid4()
+MODEL_RND_ID = str(uuid.uuid4())
 DEFAULT_MODEL_SAVE_PATH = f"{os.getcwd()}/{MODEL_RND_ID}"
 
 
@@ -94,7 +94,8 @@ def main(**kwargs):
     torch_dtype = DTYPE_FACTORY[kwargs["dtype"]]
 
     # Get Data
-    train_data, eval_data = DATASET_FACTORY[kwargs.get("dataset")]()
+    train_data, test_data = DATASET_FACTORY[kwargs.get("dataset")]()
+    x_train, y_train = train_data
     base_kernel = KERNEL_FACTORY[kwargs.get("base_kernel_type")]()
 
     # Set up Likelihood, mean/covar module, and model
@@ -107,7 +108,8 @@ def main(**kwargs):
     )
     mean_module = gpytorch.means.ConstantMean()
     model = VarPrecisionModel(
-        *train_data,  # train_x, train_y
+        x_train,
+        y_train,
         likelihood=likelihood,
         dtype=torch_dtype,
         mean_module=mean_module,
