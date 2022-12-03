@@ -73,8 +73,13 @@ def test_train_dtypes(dtype, mean_module, covar_module):
 def test_get_bikes(dtype):
     if torch.cuda.is_available():
         train_dataloader, test_dataloader = load_bikes(dtype)
-        assert train_dataloader.dtype == dtype
-        assert test_dataloader.dtype == dtype
+        x_train, y_train = train_dataloader.dataset[:10]
+        x_test, y_test = test_dataloader.dataset[:10]
+        
+        assert x_train.dtype == dtype
+        assert y_train.dtype == dtype
+        assert x_test.dtype == dtype
+        assert y_test.dtype == dtype
         
     else:
         train, test = load_bikes(dtype)
