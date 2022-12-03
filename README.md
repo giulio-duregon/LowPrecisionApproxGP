@@ -23,6 +23,8 @@ $$J \subset \{n-m\}$$
 - Dataset factory loader --DONE
 - Make normalizing function?
 - Make Log results parser
+- TODO: SET TENSORS TO DEVICE
+- TODO: Make sure all load_datasets all take in testsplit size
 
 ## Maybe if we use HPC
 - Figure out which overlays (or how to make them) are necessary for running a container
