@@ -13,14 +13,16 @@ Github repository for Low Precision Approximate Gaussian Process Inference - a g
 
 ## TODO: 
 Setup:
-- Giulio: Finish setting up **Inducing Point Kernel/Added Loss/Strategy**
+- Giulio: Finish setting up **Inducing Point Kernel/Added Loss/Strategy** -- DONE
 - Paul: Set up alternative greedy select points function that finds the best out of all candidates -> Copy the `/LowPrecisionApproxGP/util/GreedySelector.py` and make it find the best MLL rather than just one that increases the likelihood
 - - Team Decision: Encorporate size of the working set: 
 $$J \subset \{n-m\}$$
-- Giulio: Set up testing for variable precision torch dtypes and assert that the return values conform to these dtypes
+- Giulio: Set up testing for variable precision torch dtypes and assert that the return values conform to these dtypes -- DONE
 - Jonah + Giulio: Finish setting up experiment_runner
-- - Make sure can't select float16 when on CPU
-- - Better logging of results, what scheme makes sense
+- - Make sure can't select float16 when on CPU -- DONE
+- - Better logging of results, what scheme makes sense -- DONE
+- - Make Log results parser
+- Dataset factory loader
 
 ## Maybe if we use HPC
 - Figure out which overlays (or how to make them) are necessary for running a container
@@ -38,4 +40,4 @@ $$J \subset \{n-m\}$$
 | `s` | `save_model` |  Boolean to save model. |
 | `sfp` | `save_model_file_path` |  Output destination for saving model post training. |
 | `l` | `logging` |  Boolean for enabling logging. |
-|`lop` | `logging_output_path` |  Logging output destination file path. |
+|`lop` | `logging_output_path` |  Model Training logging output destination file path. |
