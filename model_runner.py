@@ -1,12 +1,20 @@
 import argparse
 import logging
 import os
-from random import choices
-from sys import argv
+from timeit import default_timer as timer
+from datetime import timedelta
 from LowPrecisionApproxGP.util import save_model, GreedyTrain
+from LowPrecisionApproxGP.model.inducing_point_kernel import (
+    VarPrecisionInducingPointKernel,
+)
 from datetime import date
 import numpy as np
 import uuid
+import torch
+from LowPrecisionApproxGP import DTYPE_FACTORY, KERNEL_FACTORY, DATASET_FACTORY
+import gpytorch
+from LowPrecisionApproxGP.model.models import VarPrecisionModel
+
 
 # Set up unique model id
 MODEL_RND_ID = uuid.uuid4()
@@ -25,13 +33,15 @@ def setup_logging(logging_directory_path=None):
             raise ValueError(
                 "No Enviroment Variable Value for EXPERIMENT_OUTPUTS, make sure to run source setup.sh"
             )
+        else:
+            logging_directory_path = default_logging_directory_path
 
     # Format save path to todays date
-    logging_directory_path = f"{logging_directory_path}/{MODEL_RND_ID}.log"
-    print(f"Saving Logging Output to -> {logging_directory_path}")
+    output_path = f"{logging_directory_path}/ModelIndex.log"
+    print(f"Saving Model ID/Params to Logging Output to -> {output_path}")
 
     return logging.basicConfig(
-        filename=logging_directory_path,
+        filename=output_path,
         filemode="a",
         encoding="utf-8",
         level=logging.INFO,
@@ -73,16 +83,45 @@ def parse_args():
 
 
 def main(**kwargs):
+    # Get device, make sure we're not running in half precision if on cpu
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if kwargs.get("dtype") == "half" and device.type == "cpu":
+        raise ValueError("Cannot Select Half Precision for running on cpu")
+
+    # Overwrite datatype string argument to torch.dtype object
+    torch_dtype = DTYPE_FACTORY[kwargs["dtype"]]
+
     # TODO: Dataset factory, Kernel Factory, get dataset, kernel, build model, train, save
-    # TODO: Add dictionary popping + exception inside kernel creation to model args
-    dataset = ...
-    base_kernel_type = ...
-    model = ...  # Feed in base_kernel / datatype
+    dataset = DATASET_FACTORY[kwargs.get("dataset")]()
 
-    # GreedyTrain.greedy_train(model, ...)
+    likelihood = gpytorch.likelihoods.GaussianLikelihood()
+    base_kernel = KERNEL_FACTORY[kwargs.get("base_kernel_type")]()
+    covar_module = VarPrecisionInducingPointKernel(
+        base_kernel=base_kernel,
+        likelihood=likelihood,
+        inducing_points=torch.zeros(1),
+        dtype=torch_dtype,
+    )
+    mean_module = gpytorch.means.ConstantMean()
+    model = VarPrecisionModel(
+        train_x, train_y, likelihood, torch_dtype, mean_module, covar_module
+    )
 
+    # Time Training
+    start_time = timer()
+    GreedyTrain.greedy_train(model, ...)
+    end_time = timer()
+    time_delta = timedelta(seconds=end_time - start_time)
+
+    logging.info(
+        f"Model_ID:{MODEL_RND_ID}, Start_Time:{start_time}, End_Time:{end_time}, Time_Delta:{time_delta}"
+    )
+
+    # Save Model if Applicable
     if kwargs.get("save_model"):
-        save_model(model, kwargs.get("save_model_file_path", DEFAULT_MODEL_SAVE_PATH))
+        save_model.save_model(
+            model, kwargs.get("save_model_file_path", DEFAULT_MODEL_SAVE_PATH)
+        )
 
 
 if __name__ == "__main__":
@@ -92,7 +131,7 @@ if __name__ == "__main__":
     # Set up logging if necessary
     if args.pop("logging", None):
         setup_logging(args.pop("logging_output_path", None))
-        logging.info(f"Initializing model_runner.py with {args}")
+        logging.info(f" Model_ID:{MODEL_RND_ID}, Date:{date.today()}, Args:{args}")
 
     # Execute main
     main(**args)

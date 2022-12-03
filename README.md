@@ -19,6 +19,8 @@ Setup:
 $$J \subset \{n-m\}$$
 - Giulio: Set up testing for variable precision torch dtypes and assert that the return values conform to these dtypes
 - Jonah + Giulio: Finish setting up experiment_runner
+- - Make sure can't select float16 when on CPU
+- - Better logging of results, what scheme makes sense
 
 ## Maybe if we use HPC
 - Figure out which overlays (or how to make them) are necessary for running a container

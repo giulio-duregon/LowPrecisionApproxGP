@@ -1,3 +1,4 @@
+from cmath import log
 from datetime import date
 from typing import Tuple
 import torch
@@ -7,9 +8,38 @@ from gpytorch.mlls import ExactMarginalLogLikelihood
 import numpy as np
 from .GreedyMaxSelector import greedy_select_points_max
 from .GreedySelector import greedy_select_points
-import os
 from datetime import date
 import gpytorch
+import os
+from pathlib import Path
+
+
+def get_training_logger(logging_output_path=None, **kwargs) -> logging.Logger:
+    if logging_output_path is None:
+        logging_output_path = (
+            os.getenv(
+                "EXPERIMENT_OUTPUTS", Path(os.getcwd()).parent.parent + f"/Experiments/"
+            )
+            + f"{kwargs.get('model_name',date.today())}"
+        )
+    loggerName = "GreedyTrain.py"
+    logFormatter = logging.Formatter(fmt="%(asctime)s %(message)s")
+
+    # create logger
+    logger = logging.getLogger(loggerName)
+    logger.setLevel(logging.INFO)
+
+    # create console handler
+    consoleHandler = logging.FileHandler(
+        logging_output_path, mode="a", encoding="utf-8"
+    )
+    consoleHandler.setLevel(logging.INFO)
+    consoleHandler.setFormatter(logFormatter)
+
+    # Add console handler to logger
+    logger.addHandler(consoleHandler)
+    return logger
+
 
 def greedy_train(
     train_data: Tuple[torch.Tensor, torch.Tensor],
@@ -18,28 +48,28 @@ def greedy_train(
     max_iter: int = 50,
     max_inducing_points: int = 50,
     model_name: str = None,
-    dtype: torch.dtype = None,
-    Use_Max: bool = True,               #If you want to find max or just the first increasing inducing point
-    J: int = 0,                         #Use J=0 if you want to find maximizing MLL inducing point over all candidates
-    max_Js: int = 10,                   #Number of J sets you want to explore without an increasing inducing point before stopping
+    logging_path: str = None,
+    dtype: torch.dtype = torch.float64,
+    Use_Max: bool = True,  # If you want to find max or just the first increasing inducing point
+    J: int = 0,  # Use J=0 if you want to find maximizing MLL inducing point over all candidates
+    max_Js: int = 10,  # Number of J sets you want to explore without an increasing inducing point before stopping
 ) -> ExactGP:
 
     # Create model name for logging purposes
     # TODO: Pass through model_name
+    print("Getting logger")
+    logger = get_training_logger(logging_path, model_name=model_name)
 
-    if dtype is None:
-        dtype = torch.float64
-
-    logging.info(
-        f"Model : {model_name}, Message : Pre-Training model.state_dict {model.state_dict()}"
+    logger.info(
+        f"Type:Info, Model:{model_name}, Message:Pre-Training model.state_dict, State:{model.state_dict()}"
     )
     train_x, train_y = train_data
 
     inducing_point_candidates = train_x.detach().clone()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
 
-    logging.info(
-        f"Model : {model_name}, Message : Starting training loop, {max_iter} max iterations, \
+    logger.info(
+        f"Type:Info, Model:{model_name}, Message:Starting training loop, {max_iter} max iterations, \
         {max_inducing_points} max inducing points"
     )
 
@@ -69,9 +99,9 @@ def greedy_train(
                 )
 
             elif len(model.covar_module.inducing_points) >= max_inducing_points:
-                logging.info(
-                    f"Model : {model_name}, Message : Breaking out of training loop at iteration {i+1}/{max_iter}. Reached limit of inducing points: we have {len(model.covar_module.inducing_points)} \
-                    points with a maximum of {max_inducing_points}"
+                logger.info(
+                    f"Type:Info, Model:{model_name}, Message:Breaking out of training loop, Iteration:{i}/{max_iter}, Reason:Reached limit of inducing points: we have {len(model.covar_module.inducing_points)} \
+                            points with a maximum of {max_inducing_points}"
                 )
                 break
             else:
@@ -90,13 +120,13 @@ def greedy_train(
                         Js += 1
                         # if we have not seen an increasing inducing point in all the J sets, then break.
                         if Js > max_Js:
-                            logging.info(
-                                f"Model : {model_name}, Message : Breaking out of training loop at iteration {i}/{max_iter}. Failed to add inducing point in max number of J sets."
+                            logger.info(
+                                f"Type:Info, Model:{model_name}, Message:Breaking out of training loop, Iteration:{i}/{max_iter}, Reason:Failed to add inducing point in max number of J sets"
                             )
                             break
                     # We've failed to find a point that increases our Likelihood
-                    logging.info(
-                        f"Model : {model_name}, Message : Breaking out of training loop at iteration {i}/{max_iter}. Failed to add inducing point."
+                    logger.info(
+                        f"Type:Info, Model:{model_name}, Message:Breaking out of training loop, Iteration:{i}/{max_iter}, Reason:Failed to add an inducing point"
                     )
                     break
 
@@ -110,8 +140,8 @@ def greedy_train(
             loss = -mll(output, train_y)
             loss.mean().backward()
 
-            logging.info(
-                f"Model : {model_name}, Message : Iteration: {i+1}/{max_iter} - Average Loss: {loss.mean().item()}"
+            logger.info(
+                f"Type:Loss, Model:{model_name}, Message:Iteration:{i+1}/{max_iter}, Average_Loss:{loss.mean().item()}"
             )
             torch.cuda.empty_cache()
 

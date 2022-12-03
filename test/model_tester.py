@@ -1,6 +1,4 @@
-import torch
 import gpytorch
-from LowPrecisionApproxGP.util.dtype_converter import convert_tensors_to_dtype
 
 
 class ModelTester(gpytorch.models.ExactGP):
