@@ -11,17 +11,14 @@ from .GreedySelector import greedy_select_points
 from datetime import date
 import gpytorch
 import os
-from pathlib import Path
 
 
-def get_training_logger(logging_output_path=None, **kwargs) -> logging.Logger:
+def get_training_logger(logging_output_path=None, model_name=None) -> logging.Logger:
     if logging_output_path is None:
-        logging_output_path = (
-            os.getenv(
-                "EXPERIMENT_OUTPUTS", Path(os.getcwd()).parent.parent + f"/Experiments/"
-            )
-            + f"{kwargs.get('model_name',date.today())}"
-        )
+        logging_output_path = os.getenv(
+            "EXPERIMENT_OUTPUTS", default=(os.getcwd() + "/Experiments/")
+        ) + (model_name if model_name else str(date.today()))
+
     loggerName = "GreedyTrain.py"
     logFormatter = logging.Formatter(fmt="%(asctime)s %(message)s")
 
