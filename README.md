@@ -21,8 +21,9 @@ $$J \subset \{n-m\}$$
 - Jonah + Giulio: Finish setting up experiment_runner
 - - Make sure can't select float16 when on CPU -- DONE
 - - Better logging of results, what scheme makes sense -- DONE
-- - Make Log results parser
-- Dataset factory loader
+- Dataset factory loader --DONE
+- Make normalizing function?
+- Make Log results parser
 
 ## Maybe if we use HPC
 - Figure out which overlays (or how to make them) are necessary for running a container
