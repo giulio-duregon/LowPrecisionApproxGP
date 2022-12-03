@@ -8,7 +8,7 @@ from LowPrecisionApproxGP.util.GreedyTrain import greedy_train
 from LowPrecisionApproxGP.model.inducing_point_kernel import (
     VarPrecisionInducingPointKernel,
 )
-from LowPrecisionApproxGP import load_bikes
+from LowPrecisionApproxGP import load_bikes, load_energy, load_road3d
 
 
 # torch.float16 not possible for cpu only
@@ -89,4 +89,27 @@ def test_get_bikes(dtype):
         assert y_train.dtype == dtype
         assert x_test.dtype == dtype
         assert y_test.dtype == dtype
+        
+        
+@pytest.mark.parametrize("dtype",dtypes)
+def test_get_bikes(dtype):
+    if torch.cuda.is_available():
+        train_dataloader, test_dataloader = load_energy(dtype)
+        x_train, y_train = train_dataloader.dataset[:10]
+        x_test, y_test = test_dataloader.dataset[:10]
+        
+        assert x_train.dtype == dtype
+        assert y_train.dtype == dtype
+        assert x_test.dtype == dtype
+        assert y_test.dtype == dtype
+        
+    else:
+        train, test = load_bikes(dtype)
+        x_train, y_train = train
+        x_test, y_test = test
+        assert x_train.dtype == dtype
+        assert y_train.dtype == dtype
+        assert x_test.dtype == dtype
+        assert y_test.dtype == dtype
+    
     
