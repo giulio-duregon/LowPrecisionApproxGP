@@ -14,6 +14,9 @@ import os
 
 
 def get_training_logger(logging_output_path=None, model_name=None) -> logging.Logger:
+    """
+    Helper function to setup training logger. Records training progress output to /Experiments/Model_Name.log
+    """
     if logging_output_path is None:
         logging_output_path = (
             os.getenv("EXPERIMENT_OUTPUTS", default=(os.getcwd() + "/Experiments"))

@@ -23,6 +23,9 @@ from .prediction_strategy import VarPrecisionSGPRPredictionStrategy
 
 
 class VarPrecisionInducingPointKernel(Kernel):
+    """
+    Class `InducingPointKernel` ripped from gpytorch's source code and modified to cast datatypes to variable precision.
+    """
     def __init__(
         self,
         base_kernel: Kernel,
