@@ -24,3 +24,16 @@ $$J \subset \{n-m\}$$
 - Figure out which overlays (or how to make them) are necessary for running a container
 - Get script to download overlay and launch singularity container
 - Update `dataIntoRam.sh` script to point to saved file location on cluster
+
+
+## Variables / Arguments Explanation
+| Short Name | Long Name | Description |
+| :------------ | :------------ |  :-----------: |
+| `d` | `dataset` | Specifies dataset to use. |
+| `bk` | `base_kernel_type` | Selects the base kernel to be used in model. |
+| `it` | `training_iter` |  Maximum number of training/optimization iterations. |
+| `dt` | `datatype` | Torch.dtype to be used in computation. |
+| `s` | `save_model` |  Boolean to save model. |
+| `sfp` | `save_model_file_path` |  Output destination for saving model post training. |
+| `l` | `logging` |  Boolean for enabling logging. |
+|`lop` | `logging_output_path` |  Logging output destination file path. |

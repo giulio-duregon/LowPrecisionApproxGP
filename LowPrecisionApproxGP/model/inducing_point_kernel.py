@@ -16,8 +16,6 @@ from torch import Tensor
 from gpytorch import settings
 from gpytorch.distributions import MultivariateNormal
 from gpytorch.likelihoods import Likelihood
-from gpytorch.mlls import InducingPointKernelAddedLossTerm
-from gpytorch.models import exact_prediction_strategies
 from gpytorch.kernels import Kernel
 
 from .kernel_added_loss_term import VarPrecisionInducingPointKernelAddedLossTerm
@@ -47,7 +45,7 @@ class VarPrecisionInducingPointKernel(Kernel):
 
         if inducing_points.ndimension() == 1:
             inducing_points = inducing_points.unsqueeze(-1)
-        inducing_points = inducing_points
+        inducing_points = inducing_points.to(self._dtype_to_set)
         self.register_parameter(
             name="inducing_points",
             parameter=torch.nn.Parameter(inducing_points, requires_grad=False),
@@ -96,7 +94,7 @@ class VarPrecisionInducingPointKernel(Kernel):
                 x1,
                 self.inducing_points,
             )
-        )
+        ).to(self._dtype_to_set)
         if torch.equal(x1, x2):
             covar = LowRankRootLinearOperator(k_ux1.matmul(self._inducing_inv_root))
 
@@ -128,20 +126,22 @@ class VarPrecisionInducingPointKernel(Kernel):
             inputs = inputs.unsqueeze(1)
 
         # Get diagonal of covar
-        covar_diag = to_dense(self.base_kernel(inputs, diag=True))
+        covar_diag = to_dense(
+            self.base_kernel(inputs.to(self._dtype_to_set), diag=True)
+        )
         return DiagLinearOperator(covar_diag)
 
     def forward(self, x1, x2, diag=False, **kwargs):
         # TODO: See if this conversion is necessary
-        # x1, x2 = x1.type(self._dtype_to_set), x2.type(self._dtype_to_set)
-        covar = self._get_covariance(x1, x2)
+        x1, x2 = x1.type(self._dtype_to_set), x2.type(self._dtype_to_set)
+        covar = self._get_covariance(x1, x2).to(self._dtype_to_set)
 
         if self.training:
             if not torch.equal(x1, x2):
                 raise RuntimeError("x1 should equal x2 in training mode")
 
             # TODO: See if this conversion is necessary
-            zero_mean = torch.zeros_like(x1.select(-1, 0))
+            zero_mean = torch.zeros_like(x1.select(-1, 0)).to(self._dtype_to_set)
             new_added_loss_term = VarPrecisionInducingPointKernelAddedLossTerm(
                 MultivariateNormal(zero_mean, self._covar_diag(x1)),
                 MultivariateNormal(zero_mean, covar),
@@ -152,7 +152,7 @@ class VarPrecisionInducingPointKernel(Kernel):
         if diag:
             return covar.diagonal(dim1=-1, dim2=-2)
         else:
-            return covar
+            return covar.to(self._dtype_to_set)
 
     def num_outputs_per_input(self, x1, x2):
         return self.base_kernel.num_outputs_per_input(x1, x2)
