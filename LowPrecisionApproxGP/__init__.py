@@ -12,6 +12,7 @@ ENERGY_DATASET_PATH = "data/energy/energy.csv"
 BIKES_DATASET_PATH = "data/bikes/hour.csv"
 ROAD3D_DATASET_PATH = "data/road3d/3droad.txt"
 
+
 def get_base_kernel():
     return ScaleKernel(RBFKernel())
 
@@ -101,8 +102,38 @@ def load_energy(dtype: torch.dtype, test_size: float = 0.2):
     return (x_train, y_train), (x_test, y_test)
 
 
-def load_road3d():
-    pass
+def load_road3d(dtype: torch.dtype, test_size: float = 0.2):
+    # Load data, get train test splits
+    headers = {0: "OSM_ID", 1: "LONGITUDE", 2: "LATITUDE", 3: "ALTITUDE"}
+    df = pd.read_csv("data/road3d/3droad.txt", header=None)
+    df.rename(headers, axis=1, inplace=True)
+    train, test = train_test_split(df, test_size=test_size)
+
+    # Get Relevant Columns
+    y_train, y_test = train["ALTITUDE"], test["ALTITUDE"]
+    x_train, x_test = train.drop(["ALTITUDE"], axis=1), test.drop(["ALTITUDE"], axis=1)
+
+    # Convert to Tensors
+    x_train, x_test = torch.Tensor(x_train.to_numpy()), torch.Tensor(x_test.to_numpy())
+    y_train, y_test = torch.Tensor(y_train.to_numpy()), torch.Tensor(y_test.to_numpy())
+
+    # Convert to relevant dtype
+    x_train, y_train, x_test, y_test = convert_tensors_to_dtype(
+        dtype, x_train, y_train, x_test, y_test
+    )
+
+    if torch.cuda.is_available():
+        from torch.utils.data import TensorDataset, DataLoader
+
+        train_dataset = TensorDataset(x_train, y_train)
+        train_loader = DataLoader(train_dataset, batch_size=1024, shuffle=True)
+
+        test_dataset = TensorDataset(x_test, y_test)
+        test_loader = DataLoader(test_dataset, batch_size=1024, shuffle=False)
+
+        return train_loader, test_loader
+
+    return (x_train, y_train), (x_test, y_test)
 
 
 KERNEL_FACTORY = {
