@@ -67,7 +67,7 @@ class VarPrecisionInducingPointKernel(Kernel):
                 self.base_kernel(
                     self.inducing_points,
                     self.inducing_points,
-                )
+                ).to(self._dtype_to_set)
             )
             if not self.training:
                 self._cached_kernel_mat = res
@@ -78,10 +78,14 @@ class VarPrecisionInducingPointKernel(Kernel):
         if not self.training and hasattr(self, "_cached_kernel_inv_root"):
             return self._cached_kernel_inv_root
         else:
-            chol = psd_safe_cholesky(self._inducing_mat, upper=True)
+            chol = psd_safe_cholesky(self._inducing_mat, upper=True).to(
+                self._dtype_to_set
+            )
 
             eye = torch.eye(chol.size(-1), device=chol.device, dtype=chol.dtype)
-            inv_root = torch.linalg.solve_triangular(chol, eye, upper=True)
+            inv_root = torch.linalg.solve_triangular(chol, eye, upper=True).to(
+                self._dtype_to_set
+            )
 
             res = inv_root
             if not self.training:
@@ -96,7 +100,9 @@ class VarPrecisionInducingPointKernel(Kernel):
             )
         ).to(self._dtype_to_set)
         if torch.equal(x1, x2):
-            covar = LowRankRootLinearOperator(k_ux1.matmul(self._inducing_inv_root))
+            covar = LowRankRootLinearOperator(
+                k_ux1.matmul(self._inducing_inv_root.to(self._dtype_to_set))
+            ).to(self._dtype_to_set)
 
             # Diagonal correction for predictive posterior
             if not self.training and settings.sgpr_diagonal_correction.on():
@@ -106,34 +112,32 @@ class VarPrecisionInducingPointKernel(Kernel):
                 ).clamp(0, math.inf)
                 covar = LowRankRootAddedDiagLinearOperator(
                     covar, DiagLinearOperator(correction)
-                )
+                ).to(self._dtype_to_set)
         else:
             k_ux2 = to_dense(
                 self.base_kernel(
                     x2,
                     self.inducing_points,
-                )
+                ).to(self._dtype_to_set)
             )
             covar = MatmulLinearOperator(
                 k_ux1.matmul(self._inducing_inv_root),
                 k_ux2.matmul(self._inducing_inv_root).transpose(-1, -2),
-            )
+            ).to(self._dtype_to_set)
 
         return covar
 
     def _covar_diag(self, inputs):
+        inputs = inputs.to(self._dtype_to_set)
         if inputs.ndimension() == 1:
             inputs = inputs.unsqueeze(1)
 
         # Get diagonal of covar
-        covar_diag = to_dense(
-            self.base_kernel(inputs.to(self._dtype_to_set), diag=True)
-        )
-        return DiagLinearOperator(covar_diag)
+        covar_diag = to_dense(self.base_kernel(inputs, diag=True))
+        return DiagLinearOperator(covar_diag).to(self._dtype_to_set)
 
     def forward(self, x1, x2, diag=False, **kwargs):
-        # TODO: See if this conversion is necessary
-        x1, x2 = x1.type(self._dtype_to_set), x2.type(self._dtype_to_set)
+        x1, x2 = x1.to(self._dtype_to_set), x2.to(self._dtype_to_set)
         covar = self._get_covariance(x1, x2).to(self._dtype_to_set)
 
         if self.training:
