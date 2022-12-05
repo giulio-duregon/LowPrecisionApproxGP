@@ -38,6 +38,7 @@ $$J \subset \{n-m\}$$
 | `d` | `dataset` | Specifies dataset to use. |
 | `bk` | `base_kernel_type` | Selects the base kernel to be used in model. |
 | `it` | `training_iter` |  Maximum number of training/optimization iterations. |
+| `ip` | `max_inducing_points` |  Maximum number of inducing points to be added. |
 | `dt` | `datatype` | Torch.dtype to be used in computation. |
 | `s` | `save_model` |  Boolean to save model. |
 | `sfp` | `save_model_file_path` |  Output destination for saving model post training. |

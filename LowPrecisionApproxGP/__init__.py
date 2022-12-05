@@ -29,7 +29,7 @@ def get_composite_kernel():
     return ScaleKernel(RBFKernel() + PeriodicKernel())
 
 
-def load_bikes(dtype: torch.dtype = torch.float64):
+def load_bikes(dtype: torch.dtype = torch.float64, test_size: float = 0.2):
     """
     #### Loads bikes dataset from `BIKES_DATASET_PATH`, converts to a `dtype` of type `torch.dtype`
     #### Train/Test split is determined by `test_size`
@@ -39,7 +39,7 @@ def load_bikes(dtype: torch.dtype = torch.float64):
     """
     # Load data, get train test splits
     df = pd.read_csv(BIKES_DATASET_PATH)
-    train, test = train_test_split(df, test_size=0.2)
+    train, test = train_test_split(df, test_size=test_size)
 
     # Get Relevant Columns
     y_train, y_test = train["cnt"], test["cnt"]

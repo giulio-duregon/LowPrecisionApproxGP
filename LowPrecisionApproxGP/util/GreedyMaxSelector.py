@@ -63,11 +63,11 @@ def greedy_select_points_max(
         if rnd_point_mll.sum() > rnd_point_mll_max:
             rnd_point_mll_max = rnd_point_mll.sum()
             max_index = index
-        print(rnd_point_mll_max)
+
     # If after full loop new MLL max is greater than old MLL, update
     if rnd_point_mll_max > current_model_mll.sum():
 
-        #Update model again with max point
+        # Update model again with max point
         max_point = inducing_point_candidates[max_index].reshape(1, -1)
         temp = torch.cat((inducing_points, max_point), dim=0)
         model.covar_module.inducing_points = torch.nn.Parameter(

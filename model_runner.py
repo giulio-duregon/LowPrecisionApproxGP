@@ -94,6 +94,8 @@ def parse_args():
 
 
 def main(logger, **kwargs):
+    x_train: torch.Tensor
+    y_train: torch.Tensor
     # Get device, make sure we're not running in half precision if on cpu
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if kwargs.get("dtype") == "half" and device.type == "cpu":
@@ -103,26 +105,21 @@ def main(logger, **kwargs):
     torch_dtype = DTYPE_FACTORY[kwargs["dtype"]]
 
     # Get Data
-    train_data, test_data = DATASET_FACTORY[kwargs.get("dataset")]()
+    train_data, test_data = DATASET_FACTORY[kwargs.get("dataset")](torch_dtype)
     x_train, y_train = train_data
-    base_kernel = KERNEL_FACTORY[kwargs.get("base_kernel_type")]()
+    x_train = x_train.to(device)
+    y_train = y_train.to(device)
+    base_kernel = KERNEL_FACTORY[kwargs.get("base_kernel_type")]
 
     # Set up Likelihood, mean/covar module, and model
     likelihood = gpytorch.likelihoods.GaussianLikelihood()
-    covar_module = VarPrecisionInducingPointKernel(
-        base_kernel=base_kernel,
-        likelihood=likelihood,
-        inducing_points=torch.empty(1),
-        dtype=torch_dtype,
-    )
-    mean_module = gpytorch.means.ConstantMean()
     model = VarPrecisionModel(
         x_train,
         y_train,
         likelihood=likelihood,
         dtype=torch_dtype,
-        mean_module=mean_module,
-        covar_module=covar_module,
+        mean_module=gpytorch.means.ConstantMean(),
+        base_kernel=base_kernel(),
     )
 
     # Set up MLL and train
@@ -166,5 +163,6 @@ if __name__ == "__main__":
         logger = setup_logging(args.pop("logging_output_path", None))
         logger.info(f" Model_ID:{MODEL_RND_ID}, Date:{date.today()}, Args:{args}")
 
+    print(f"Running Model ID: {MODEL_RND_ID}")
     # Execute main
     main(logger, **args)
