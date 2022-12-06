@@ -21,11 +21,11 @@ def get_training_logger(logging_output_path=None, model_name=None) -> logging.Lo
         logging_output_path = (
             os.getenv("EXPERIMENT_OUTPUTS", default=(os.getcwd() + "/Experiments"))
             + "/"
-            + (model_name if model_name else str(date.today()))
+            + (model_name if model_name else str(date.today())) +".log"
         )
 
     loggerName = "GreedyTrain.py"
-    logFormatter = logging.Formatter(fmt="%(asctime)s %(message)s")
+    logFormatter = logging.Formatter(fmt="%(asctime)s - %(message)s")
 
     # create logger
     logger = logging.getLogger(loggerName)
@@ -58,23 +58,13 @@ def greedy_train(
 ) -> ExactGP:
 
     # Create model name for logging purposes
-    # TODO: Pass through model_name
     print("Getting logger")
     logger = get_training_logger(logging_path, model_name=model_name)
-
-    logger.info(
-        f"Type:Info, Model:{model_name}, Message:Pre-Training model.state_dict, State:{model.state_dict()}"
-    )
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     train_x, train_y = train_data
 
-    inducing_point_candidates = train_x.detach().clone()
+    inducing_point_candidates = train_x.detach().clone().to(device=device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
-
-    logger.info(
-        f"Type:Info, Model:{model_name}, Message:Starting training loop, {max_iter} max iterations, \
-        {max_inducing_points} max inducing points"
-    )
-
     Js = 0
 
     with gpytorch.settings.linalg_dtypes(default=dtype):
@@ -102,7 +92,7 @@ def greedy_train(
 
             elif len(model.covar_module.inducing_points) >= max_inducing_points:
                 logger.info(
-                    f"Type:Info, Model:{model_name}, Message:Breaking out of training loop, Iteration:{i}/{max_iter}, Reason:Reached limit of inducing points: we have {len(model.covar_module.inducing_points)} \
+                    f"Model:{model_name}, Message:Breaking out of training loop, Iteration:{i}/{max_iter}, Reason:Reached limit of inducing points: we have {len(model.covar_module.inducing_points)} \
                             points with a maximum of {max_inducing_points}"
                 )
                 break
@@ -123,12 +113,12 @@ def greedy_train(
                         # if we have not seen an increasing inducing point in all the j sets, then break.
                         if Js > max_js:
                             logger.info(
-                                f"Type:Info, Model:{model_name}, Message:Breaking out of training loop, Iteration:{i}/{max_iter}, Reason:Failed to add inducing point in max number of J sets"
+                                f"Model:{model_name}, Message:Breaking out of training loop, Iteration:{i}/{max_iter}, Reason:Failed to add inducing point in max number of J sets"
                             )
                             break
                     # We've failed to find a point that increases our Likelihood
                     logger.info(
-                        f"Type:Info, Model:{model_name}, Message:Breaking out of training loop, Iteration:{i}/{max_iter}, Reason:Failed to add an inducing point"
+                        f"Model:{model_name}, Message:Breaking out of training loop, Iteration:{i}/{max_iter}, Reason:Failed to add an inducing point"
                     )
                     break
 
@@ -143,7 +133,7 @@ def greedy_train(
             loss.mean().backward()
 
             logger.info(
-                f"Type:Loss, Model:{model_name}, Message:Iteration:{i+1}/{max_iter}, Average_Loss:{loss.mean().item()}"
+                f"{{'Model':'{model_name}', 'Iteration':'{i+1}', 'Max_iter':'{max_iter}', 'Average_Training_Loss':'{loss.mean().item()}'}}"
             )
             torch.cuda.empty_cache()
 

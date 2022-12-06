@@ -1,12 +1,18 @@
 import ast
 import pandas as pd
+import os
+from pathlib import Path
 
 model_ids = set()
 model_list = []
 
 
 def main():
-    with open("/Users/giulio/LowPrecisionApproxGP/Experiments/Model_Index.log") as file:
+    experiment_folder = os.getenv(
+        "EXPERIMENT_OUTPUTS", Path(os.getcwd() + "/Experiments")
+    )
+
+    with open(f"{experiment_folder}/Model_Index.log") as file:
         for line in file.readlines():
             # Seperate Message From TimeStamp
             line = line.split("-", maxsplit=3)[3]
@@ -14,7 +20,8 @@ def main():
             # First Segment is "model_ID": Unique Model ID
             segments = line.split(",", maxsplit=1)
             model_key, model_id = segments[0].split(":")
-
+            model_key = model_key.strip()
+            
             # Check if its in the set, this is necessary as outputs come in 2 lines
             # First line is initialization
             # Second line is time duration for training
@@ -35,7 +42,24 @@ def main():
                 # Merge the two lines into a single dictionary
                 dict_to_update.update(ast.literal_eval(segments[1].strip()))
 
-    df = pd.json_normalize(model_list)
+    index_df = pd.json_normalize(model_list)
+
+    training_list = []
+    files = [
+        file
+        for file in os.listdir(experiment_folder)
+        if file != "Model_Index.log" and ".log" in file
+    ]
+    for logs in files:
+        with open(str(experiment_folder) + "/" + logs) as file:
+            for line in file.readlines():
+                arg = line.split("-", maxsplit=3)[3].strip()
+                training_list.append(ast.literal_eval(arg))
+
+    training_df = pd.json_normalize(training_list)
+    training_df.set_index("Model", inplace=True)
+    index_df.set_index("Model_ID",inplace=True)
+    index_df.join(training_df).to_csv("experiment_outputs.csv")
 
 
 if __name__ == "__main__":
