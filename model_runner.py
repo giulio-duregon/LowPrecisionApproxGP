@@ -14,7 +14,11 @@ import torch
 from LowPrecisionApproxGP import DTYPE_FACTORY, KERNEL_FACTORY, DATASET_FACTORY
 import gpytorch
 from LowPrecisionApproxGP.model.models import VarPrecisionModel
+import random
 
+np.random.seed(0)
+torch.manual_seed(0)
+random.seed(0)
 
 # Set up unique model id
 MODEL_RND_ID = str(uuid.uuid4())
@@ -107,6 +111,8 @@ def main(logger, **kwargs):
     # Get Data
     train_data, test_data = DATASET_FACTORY[kwargs.get("dataset")](torch_dtype)
     x_train, y_train = train_data
+    x_test, y_test = test_data
+
     x_train = x_train.to(device)
     y_train = y_train.to(device)
     base_kernel = KERNEL_FACTORY[kwargs.get("base_kernel_type")]
@@ -144,8 +150,25 @@ def main(logger, **kwargs):
     end_time = timer()
     time_delta = end_time - start_time
     time_delta_formatted = timedelta(seconds=end_time - start_time)
+
+    model.eval()
+    likelihood.eval()
+
+    with torch.no_grad():
+        trained_pred_dist = likelihood(model(x_test))
+        predictive_mean = trained_pred_dist.mean
+        lower, upper = trained_pred_dist.confidence_region()
+
+    final_msll = gpytorch.metrics.mean_standardized_log_loss(trained_pred_dist, y_test)
+    final_mse = gpytorch.metrics.mean_squared_error(
+        trained_pred_dist, y_test, squared=True
+    )
+    final_nlpd = gpytorch.metrics.negative_log_predictive_density(
+        trained_pred_dist, y_test
+    )
+    final_mae = gpytorch.metrics.mean_absolute_error(trained_pred_dist, y_test)
     logger.info(
-        f"Model_ID:{MODEL_RND_ID}, {{'Start_Time':'{start_time}', 'End_Time':'{end_time}', 'Time_Delta_Seconds':'{time_delta}','Time_Delta_Formatted':'{time_delta_formatted}'}}"
+        f"Model_ID:{MODEL_RND_ID}, {{'Start_Time':'{start_time}', 'End_Time':'{end_time}', 'Time_Delta_Seconds':'{time_delta}','Time_Delta_Formatted':'{time_delta_formatted}','Mean_Standardized_Log_Test_Loss':'{final_msll}','Mean_Squared_Test_Error':'{final_mse}','Negative_Log_Test_Predictive_Density':'{final_nlpd}','Mean_Absolute_Test_Error':'{final_mae}'}}"
     )
 
     # Save Model if Applicable

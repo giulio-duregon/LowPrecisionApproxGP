@@ -13,7 +13,6 @@ from gpytorch.utils.memoize import (
 )
 
 
-# TODO: Take in dtype as constructor arg, cast everything as necessary
 class VarPrecisionSGPRPredictionStrategy(DefaultPredictionStrategy):
     def __init__(
         self,
@@ -23,15 +22,10 @@ class VarPrecisionSGPRPredictionStrategy(DefaultPredictionStrategy):
         likelihood,
         root=None,
         inv_root=None,
-        dtype=None,
     ):
         super().__init__(
             train_inputs, train_prior_dist, train_labels, likelihood, root, inv_root
         )
-        if dtype is None:
-            self._dtype_to_set = torch.float64
-        else:
-            self._dtype_to_set = dtype
 
     @property
     @cached(name="covar_cache")

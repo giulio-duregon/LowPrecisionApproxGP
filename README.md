@@ -19,6 +19,8 @@ Setup:
 - - Team Decision: Encorporate size of the working set for experimentation
 $$J \subset \{n-m\}$$
 - Make normalizing function?
+- Test loss -- DONE
+- Set Random seed for reproducibility -- DONE
 - Set all tensors to device
 - Run on GPU
 

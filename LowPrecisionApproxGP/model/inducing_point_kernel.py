@@ -26,6 +26,7 @@ class VarPrecisionInducingPointKernel(Kernel):
     """
     Class `InducingPointKernel` ripped from gpytorch's source code and modified to cast datatypes to variable precision.
     """
+
     def __init__(
         self,
         base_kernel: Kernel,
@@ -195,5 +196,5 @@ class VarPrecisionInducingPointKernel(Kernel):
     ):
         # Use our Custom Strategy as built-in expects InducingPointKernel
         return VarPrecisionSGPRPredictionStrategy(
-            train_inputs, train_prior_dist, train_labels, likelihood, self._dtype_to_set
+            train_inputs, train_prior_dist, train_labels, likelihood
         )
