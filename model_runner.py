@@ -38,10 +38,10 @@ def setup_logging(logging_directory_path=None):
             logging_directory_path = default_logging_directory_path
 
     # Format save path to todays date
-    output_path = f"{logging_directory_path}/ModelIndex.log"
+    output_path = f"{logging_directory_path}/Model_Index.log"
     print(f"Saving Model ID/Params to Logging Output to -> {output_path}")
     loggerName = "model_runner.py"
-    logFormatter = logging.Formatter(fmt="%(asctime)s %(message)s")
+    logFormatter = logging.Formatter(fmt="%(asctime)s - %(message)s")
 
     # create logger
     logger = logging.getLogger(loggerName)
@@ -142,9 +142,10 @@ def main(logger, **kwargs):
         max_js=kwargs.get("max_js"),
     )
     end_time = timer()
-    time_delta = timedelta(seconds=end_time - start_time)
+    time_delta = end_time - start_time
+    time_delta_formatted = timedelta(seconds=end_time - start_time)
     logger.info(
-        f"Model_ID:{MODEL_RND_ID}, Start_Time:{start_time}, End_Time:{end_time}, Time_Delta:{time_delta}"
+        f"Model_ID:{MODEL_RND_ID}, {{'Start_Time':'{start_time}', 'End_Time':'{end_time}', 'Time_Delta_Seconds':'{time_delta}','Time_Delta_Formatted':'{time_delta_formatted}'}}"
     )
 
     # Save Model if Applicable
@@ -161,7 +162,7 @@ if __name__ == "__main__":
     # Set up logging if necessary
     if args.pop("logging", None):
         logger = setup_logging(args.pop("logging_output_path", None))
-        logger.info(f" Model_ID:{MODEL_RND_ID}, Date:{date.today()}, Args:{args}")
+        logger.info(f"Model_ID:{MODEL_RND_ID},{args}")
 
     print(f"Running Model ID: {MODEL_RND_ID}")
     # Execute main

@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 import torch
 import gpytorch
@@ -8,6 +10,8 @@ from LowPrecisionApproxGP.model.inducing_point_kernel import (
     VarPrecisionInducingPointKernel,
 )
 from LowPrecisionApproxGP import load_road3d, load_bikes, load_energy
+
+logging.disable(logging.CRITICAL)
 
 # torch.float16 not possible for cpu only
 dtypes = (
