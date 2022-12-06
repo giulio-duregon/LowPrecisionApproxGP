@@ -6,25 +6,21 @@ Github repository for Low Precision Approximate Gaussian Process Inference - a g
 # Set up enviroment variables, pull in data
 > source setup.sh
 > bash scripts/getData.sh
-# Run Experiments
+# Run Experiments ad hoc
 > python model_runner.py -l True -d <dataset> -dt <data_type> -bk <base_kernel> ...
+# Parse the outputs ad hoc
+> python scripts/parse_logs.py
+# Or setup run_experiments.sh as you like
+> bash scripts/run_experiments.sh
 ```
 
 ## TODO: 
 Setup:
-- Giulio: Finish setting up **Inducing Point Kernel/Added Loss/Strategy** -- DONE
-- Paul: Set up alternative greedy select points function that finds the best out of all candidates -> Copy the `/LowPrecisionApproxGP/util/GreedySelector.py` and make it find the best MLL rather than just one that increases the likelihood
-- - Team Decision: Encorporate size of the working set: 
+- - Team Decision: Encorporate size of the working set for experimentation
 $$J \subset \{n-m\}$$
-- Giulio: Set up testing for variable precision torch dtypes and assert that the return values conform to these dtypes -- DONE
-- Jonah + Giulio: Finish setting up experiment_runner
-- - Make sure can't select float16 when on CPU -- DONE
-- - Better logging of results, what scheme makes sense -- DONE
-- Dataset factory loader --DONE
 - Make normalizing function?
-- Make Log results parser
-- TODO: SET TENSORS TO DEVICE
-- TODO: Make sure all load_datasets all take in testsplit size
+- Set all tensors to device
+- Run on GPU
 
 ## Maybe if we use HPC
 - Figure out which overlays (or how to make them) are necessary for running a container
