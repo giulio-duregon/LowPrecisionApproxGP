@@ -174,4 +174,4 @@ DATASET_FACTORY = {
 }
 
 
-__all__ = ["util", "model"]
+__all__ = ["util", "model","DTYPE_FACTORY","KERNEL_FACTORY","DATASET_FACTORY","load_energy","load_bikes","load_road3d"]

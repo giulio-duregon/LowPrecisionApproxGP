@@ -11,7 +11,7 @@ def greedy_select_points_max(
     train_x: torch.Tensor,
     train_y: torch.Tensor,
     mll: ExactMarginalLogLikelihood,
-    J: int,
+    j: int,
 ) -> Union[None, torch.Tensor]:
     """
     ###  Appends a point in-place to a model's inducing points. Uses greedy selection to select next point.
@@ -29,10 +29,10 @@ def greedy_select_points_max(
     if a point was selected, otherwise returns none.
     """
 
-    if J == 0:
+    if j == 0:
         random_indices = np.random.permutation(len(inducing_point_candidates))
     else:
-        random_indices = np.random.permutation(len(inducing_point_candidates))[:J]
+        random_indices = np.random.permutation(len(inducing_point_candidates))[:j]
 
     inducing_points = model.covar_module.inducing_points
 

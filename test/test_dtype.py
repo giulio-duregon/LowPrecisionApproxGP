@@ -1,4 +1,3 @@
-from json import load
 import pytest
 import torch
 import gpytorch
@@ -10,12 +9,11 @@ from LowPrecisionApproxGP.model.inducing_point_kernel import (
 )
 from LowPrecisionApproxGP import load_road3d, load_bikes, load_energy
 
-
 # torch.float16 not possible for cpu only
 dtypes = (
-    [(torch.float16), (torch.float32), (torch.float64)]
-    if torch.cuda.is_available()
-    else [(torch.float32), (torch.float64)]
+    [(torch.float32), (torch.float64)]
+    if not torch.cuda.is_available()
+    else [(torch.float16), (torch.float32), (torch.float64)]
 )
 testdata = [
     (torch.Tensor([1, 2, 3]), torch.Tensor([0, 0, 0, 0, 0, 1])),
@@ -59,9 +57,9 @@ def test_train_dtypes(dtype, mean_module, covar_module):
         5,
         10,
         dtype=dtype,
-        Use_Max=True,
-        J=20,
-        max_Js=10,
+        use_max=True,
+        j=20,
+        max_js=10,
     )
 
     assert x_train.dtype == dtype
@@ -69,18 +67,18 @@ def test_train_dtypes(dtype, mean_module, covar_module):
     assert model.covar_module.inducing_points.dtype == dtype
 
 
-@pytest.mark.parametrize("dtype",dtypes)
+@pytest.mark.parametrize("dtype", dtypes)
 def test_load_bikes(dtype):
     if torch.cuda.is_available():
         train_dataloader, test_dataloader = load_bikes(dtype)
         x_train, y_train = train_dataloader.dataset[:10]
         x_test, y_test = test_dataloader.dataset[:10]
-        
+
         assert x_train.dtype == dtype
         assert y_train.dtype == dtype
         assert x_test.dtype == dtype
         assert y_test.dtype == dtype
-        
+
     else:
         train, test = load_bikes(dtype)
         x_train, y_train = train
@@ -89,20 +87,20 @@ def test_load_bikes(dtype):
         assert y_train.dtype == dtype
         assert x_test.dtype == dtype
         assert y_test.dtype == dtype
-        
-        
-@pytest.mark.parametrize("dtype",dtypes)
+
+
+@pytest.mark.parametrize("dtype", dtypes)
 def test_load_energy(dtype):
     if torch.cuda.is_available():
         train_dataloader, test_dataloader = load_energy(dtype)
         x_train, y_train = train_dataloader.dataset[:10]
         x_test, y_test = test_dataloader.dataset[:10]
-        
+
         assert x_train.dtype == dtype
         assert y_train.dtype == dtype
         assert x_test.dtype == dtype
         assert y_test.dtype == dtype
-        
+
     else:
         train, test = load_bikes(dtype)
         x_train, y_train = train
@@ -111,19 +109,20 @@ def test_load_energy(dtype):
         assert y_train.dtype == dtype
         assert x_test.dtype == dtype
         assert y_test.dtype == dtype
-        
-@pytest.mark.parametrize("dtype",dtypes)
+
+
+@pytest.mark.parametrize("dtype", dtypes)
 def test_load_3droad(dtype):
     if torch.cuda.is_available():
         train_dataloader, test_dataloader = load_road3d(dtype)
         x_train, y_train = train_dataloader.dataset[:10]
         x_test, y_test = test_dataloader.dataset[:10]
-        
+
         assert x_train.dtype == dtype
         assert y_train.dtype == dtype
         assert x_test.dtype == dtype
         assert y_test.dtype == dtype
-        
+
     else:
         train, test = load_bikes(dtype)
         x_train, y_train = train
@@ -132,5 +131,3 @@ def test_load_3droad(dtype):
         assert y_train.dtype == dtype
         assert x_test.dtype == dtype
         assert y_test.dtype == dtype
-    
-    

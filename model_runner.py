@@ -32,7 +32,7 @@ def setup_logging(logging_directory_path=None):
 
         if default_logging_directory_path is None:
             raise ValueError(
-                "No Enviroment Variable Value for EXPERIMENT_OUTPUTS, make sure to run source setup.sh"
+                "No Environment Variable Value for EXPERIMENT_OUTPUTS, make sure to run source setup.sh"
             )
         else:
             logging_directory_path = default_logging_directory_path
@@ -137,9 +137,9 @@ def main(logger, **kwargs):
         max_inducing_points=kwargs.get("max_inducing_points"),
         model_name=MODEL_RND_ID,
         dtype=torch_dtype,
-        Use_Max=kwargs.get("use_max"),
-        J=kwargs.get("j"),
-        max_Js=kwargs.get("max_js"),
+        use_max=kwargs.get("use_max"),
+        j=kwargs.get("j"),
+        max_js=kwargs.get("max_js"),
     )
     end_time = timer()
     time_delta = timedelta(seconds=end_time - start_time)

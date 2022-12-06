@@ -52,9 +52,9 @@ def greedy_train(
     model_name: str = None,
     logging_path: str = None,
     dtype: torch.dtype = torch.float64,
-    Use_Max: bool = True,  # If you want to find max or just the first increasing inducing point
-    J: int = 0,  # Use J=0 if you want to find maximizing MLL inducing point over all candidates
-    max_Js: int = 10,  # Number of J sets you want to explore without an increasing inducing point before stopping
+    use_max: bool = True,  # If you want to find max or just the first increasing inducing point
+    j: int = 0,  # Use j=0 if you want to find maximizing MLL inducing point over all candidates
+    max_js: int = 10,  # Number of j sets you want to explore without an increasing inducing point before stopping
 ) -> ExactGP:
 
     # Create model name for logging purposes
@@ -107,9 +107,9 @@ def greedy_train(
                 )
                 break
             else:
-                if Use_Max:
+                if use_max:
                     inducing_point_candidates = greedy_select_points_max(
-                        model, inducing_point_candidates, train_x, train_y, mll, J
+                        model, inducing_point_candidates, train_x, train_y, mll, j
                     )
                 else:
                     inducing_point_candidates = greedy_select_points(
@@ -117,11 +117,11 @@ def greedy_train(
                     )
 
                 if inducing_point_candidates is None:
-                    if J != 0 and Use_Max:
-                        # In the J set of points we chose we did not see any increase in the MLL
+                    if j != 0 and use_max:
+                        # In the j set of points we chose we did not see any increase in the MLL
                         Js += 1
-                        # if we have not seen an increasing inducing point in all the J sets, then break.
-                        if Js > max_Js:
+                        # if we have not seen an increasing inducing point in all the j sets, then break.
+                        if Js > max_js:
                             logger.info(
                                 f"Type:Info, Model:{model_name}, Message:Breaking out of training loop, Iteration:{i}/{max_iter}, Reason:Failed to add inducing point in max number of J sets"
                             )
