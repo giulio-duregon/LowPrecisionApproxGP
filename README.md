@@ -43,6 +43,6 @@ $$J \subset \{n-m\}$$
 | `l` | `logging` |  Boolean for enabling logging. |
 |`lop` | `logging_output_path` |  Model Training logging output destination file path. |
 |`m` | `use_max` | Instructs the model to use O(n) search to find max MLL inducing point to be selected|
-|`j` | `j` | #TODO: Not Sure, Paul pls explain|
-| `mj` | `max_js` | Maximum size of subset of candidate inducing points to be considered during greedy selection|
+|`j` | `j` | #TODO: Size of subset of inducing point candidates|
+| `mj` | `max_js` | Maximum number of subsets considered when searching for an inducing point to increase MLL|
 |||
