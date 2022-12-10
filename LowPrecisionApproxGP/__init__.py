@@ -1,6 +1,4 @@
 from . import util, model
-from .util import *
-from .model import *
 from gpytorch.kernels import RBFKernel, ScaleKernel, MaternKernel, PeriodicKernel
 import torch
 from sklearn.model_selection import train_test_split
@@ -8,9 +6,10 @@ from LowPrecisionApproxGP.util.dtype_converter import convert_tensors_to_dtype
 import pandas as pd
 
 # Constants for dataset locations created from `scripts/getData.sh`
-ENERGY_DATASET_PATH = "data/energy/energy.csv"
-BIKES_DATASET_PATH = "data/bikes/hour.csv"
-ROAD3D_DATASET_PATH = "data/road3d/3droad.txt"
+ENERGY_DATASET_PATH = "../data/energy/energy.csv"
+BIKES_DATASET_PATH = "../data/bikes/hour.csv"
+ROAD3D_DATASET_PATH = "../data/road3d/3droad.txt"
+
 
 # Helper functions for Kernel Selection (See Factories Below)
 def get_base_kernel():
@@ -173,5 +172,5 @@ DATASET_FACTORY = {
     "road3d": load_road3d,
 }
 
-
-__all__ = ["util", "model","DTYPE_FACTORY","KERNEL_FACTORY","DATASET_FACTORY","load_energy","load_bikes","load_road3d"]
+__all__ = ["util", "model", "DTYPE_FACTORY", "KERNEL_FACTORY", "DATASET_FACTORY", "load_energy", "load_bikes",
+           "load_road3d"]

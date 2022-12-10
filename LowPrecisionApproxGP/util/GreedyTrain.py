@@ -19,16 +19,16 @@ def get_training_logger(logging_output_path=None, model_name=None) -> logging.Lo
     """
     if logging_output_path is None:
         logging_output_path = (
-            os.getenv("EXPERIMENT_OUTPUTS", default=(os.getcwd() + "/Experiments"))
-            + "/"
-            + (model_name if model_name else str(date.today())) +".log"
+                os.getenv("EXPERIMENT_OUTPUTS", default=(os.getcwd() + "/Experiments"))
+                + "/"
+                + (model_name if model_name else str(date.today())) + ".log"
         )
 
-    loggerName = "GreedyTrain.py"
-    logFormatter = logging.Formatter(fmt="%(asctime)s - %(message)s")
+    logger_name = "GreedyTrain.py"
+    log_formatter = logging.Formatter(fmt="%(asctime)s - %(message)s")
 
     # create logger
-    logger = logging.getLogger(loggerName)
+    logger = logging.getLogger(logger_name)
     logger.setLevel(logging.INFO)
 
     # create console handler
@@ -36,7 +36,7 @@ def get_training_logger(logging_output_path=None, model_name=None) -> logging.Lo
         logging_output_path, mode="a", encoding="utf-8"
     )
     consoleHandler.setLevel(logging.INFO)
-    consoleHandler.setFormatter(logFormatter)
+    consoleHandler.setFormatter(log_formatter)
 
     # Add console handler to logger
     logger.addHandler(consoleHandler)
@@ -44,19 +44,18 @@ def get_training_logger(logging_output_path=None, model_name=None) -> logging.Lo
 
 
 def greedy_train(
-    train_data: Tuple[torch.Tensor, torch.Tensor],
-    model: ExactGP,
-    mll: ExactMarginalLogLikelihood,
-    max_iter: int = 50,
-    max_inducing_points: int = 50,
-    model_name: str = None,
-    logging_path: str = None,
-    dtype: torch.dtype = torch.float64,
-    use_max: bool = True,  # If you want to find max or just the first increasing inducing point
-    j: int = 0,  # Use j=0 if you want to find maximizing MLL inducing point over all candidates
-    max_js: int = 10,  # Number of j sets you want to explore without an increasing inducing point before stopping
+        train_data: Tuple[torch.Tensor, torch.Tensor],
+        model: ExactGP,
+        mll: ExactMarginalLogLikelihood,
+        max_iter: int = 50,
+        max_inducing_points: int = 50,
+        model_name: str = None,
+        logging_path: str = None,
+        dtype: torch.dtype = torch.float64,
+        use_max: bool = True,  # If you want to find max or just the first increasing inducing point
+        j: int = 0,  # Use j=0 if you want to find maximizing MLL inducing point over all candidates
+        max_js: int = 10,  # Number of j sets you want to explore without an increasing inducing point before stopping
 ) -> ExactGP:
-
     # Create model name for logging purposes
     print("Getting logger")
     logger = get_training_logger(logging_path, model_name=model_name)
@@ -85,7 +84,7 @@ def greedy_train(
                 inducing_point_candidates = torch.cat(
                     (
                         inducing_point_candidates[:random_index],
-                        inducing_point_candidates[random_index + 1 :],
+                        inducing_point_candidates[random_index + 1:],
                     ),
                     dim=0,
                 )
@@ -133,7 +132,7 @@ def greedy_train(
             loss.mean().backward()
 
             logger.info(
-                f"{{'Model':'{model_name}', 'Iteration':'{i+1}', 'Max_iter':'{max_iter}', 'Average_Training_Loss':'{loss.mean().item()}'}}"
+                f"{{'Model':'{model_name}', 'Iteration':'{i + 1}', 'Max_iter':'{max_iter}', 'Average_Training_Loss':'{loss.mean().item()}'}}"
             )
             torch.cuda.empty_cache()
 

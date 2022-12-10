@@ -1,5 +1,3 @@
-import logging
-
 import pytest
 import torch
 import gpytorch
@@ -11,18 +9,17 @@ from LowPrecisionApproxGP.model.inducing_point_kernel import (
 )
 from LowPrecisionApproxGP import load_road3d, load_bikes, load_energy
 
-logging.disable(logging.CRITICAL)
-
 # torch.float16 not possible for cpu only
 dtypes = (
-    [(torch.float32), (torch.float64)]
+    [torch.float32, torch.float64]
     if not torch.cuda.is_available()
-    else [(torch.float16), (torch.float32), (torch.float64)]
+    else [torch.float16, torch.float32, torch.float64]
 )
 testdata = [
     (torch.Tensor([1, 2, 3]), torch.Tensor([0, 0, 0, 0, 0, 1])),
     (torch.Tensor([[1, 2, 3], [1, 2, 3]])),
 ]
+
 
 # TODO: Parameterize mean / covar module with more specific versions
 mean_modules = [(gpytorch.means.ConstantMean())]
@@ -106,7 +103,7 @@ def test_load_energy(dtype):
         assert y_test.dtype == dtype
 
     else:
-        train, test = load_bikes(dtype)
+        train, test = load_energy(dtype)
         x_train, y_train = train
         x_test, y_test = test
         assert x_train.dtype == dtype
@@ -128,7 +125,7 @@ def test_load_3droad(dtype):
         assert y_test.dtype == dtype
 
     else:
-        train, test = load_bikes(dtype)
+        train, test = load_road3d(dtype)
         x_train, y_train = train
         x_test, y_test = test
         assert x_train.dtype == dtype
