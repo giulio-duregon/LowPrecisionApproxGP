@@ -39,16 +39,23 @@ def test_dtype(dtype, tensors):
 @pytest.mark.parametrize("mean_module", mean_modules)
 @pytest.mark.parametrize("covar_module", covar_modules)
 def test_train_dtypes(dtype, mean_module, covar_module):
-    x_train, y_train = torch.rand(100, 2, dtype=dtype), torch.rand(100, dtype=dtype)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    x_train, y_train = torch.rand(100, 2), torch.rand(100)
+    x_train, y_train = convert_tensors_to_dtype(dtype,x_train,y_train)
     likelihood = gpytorch.likelihoods.GaussianLikelihood()
     covar_module = VarPrecisionInducingPointKernel(
         covar_module,
-        inducing_points=torch.empty(1),
+        inducing_points=torch.empty(1, device=device, dtype=dtype),
         likelihood=likelihood,
         dtype=dtype,
     )
     model = ModelTester(x_train, y_train, likelihood, dtype, mean_module, covar_module)
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
+    
+    if device == "cuda":
+        model.cuda()
+        likelihood.cuda()
+    
     model.train()
     likelihood.train()
     model = greedy_train(

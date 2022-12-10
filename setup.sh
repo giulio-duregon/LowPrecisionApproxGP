@@ -13,5 +13,3 @@ mkdir -p "$BIKES_FOLDER"
 mkdir -p "$ENERGY_FOLDER"
 mkdir -p "$ROAD3D_FOLDER"
 mkdir -p "$EXPERIMENT_OUTPUTS"
-
-bash scripts/getData.sh

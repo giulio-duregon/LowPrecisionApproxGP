@@ -6,9 +6,9 @@ from LowPrecisionApproxGP.util.dtype_converter import convert_tensors_to_dtype
 import pandas as pd
 
 # Constants for dataset locations created from `scripts/getData.sh`
-ENERGY_DATASET_PATH = "../data/energy/energy.csv"
-BIKES_DATASET_PATH = "../data/bikes/hour.csv"
-ROAD3D_DATASET_PATH = "../data/road3d/3droad.txt"
+ENERGY_DATASET_PATH = "data/energy/energy.csv"
+BIKES_DATASET_PATH = "data/bikes/hour.csv"
+ROAD3D_DATASET_PATH = "data/road3d/3droad.txt"
 
 
 # Helper functions for Kernel Selection (See Factories Below)
