@@ -12,8 +12,7 @@ from LowPrecisionApproxGP import load_road3d, load_bikes, load_energy
 # torch.float16 not possible for cpu only
 dtypes = (
     [torch.float32, torch.float64]
-    if not torch.cuda.is_available()
-    else [torch.float16, torch.float32, torch.float64]
+
 )
 testdata = [
     (torch.Tensor([1, 2, 3]), torch.Tensor([0, 0, 0, 0, 0, 1])),
