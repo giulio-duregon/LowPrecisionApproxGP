@@ -1,5 +1,5 @@
 # Run experiments on small datasets with first greedy
-for dataset in "bikes" "protein" "naval" "energy"; do
+for dataset in "bikes" "protein" "energy"; do
     for ip in 50 75 100 150 200; do
         for precision in "single" "double"; do
             echo $dataset, $ip, $precision
@@ -9,7 +9,7 @@ for dataset in "bikes" "protein" "naval" "energy"; do
 done
 
 # Run experiments on small datasets with max greedy
-for dataset in "bikes" "protein" "naval" "energy"; do
+for dataset in "bikes" "protein" "energy"; do
     for ip in 50 75 100 150 200; do
         for precision in "single" "double"; do
             for j in 10 20 40 60; do
