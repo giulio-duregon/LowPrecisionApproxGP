@@ -19,9 +19,10 @@ def get_training_logger(logging_output_path=None, model_name=None) -> logging.Lo
     """
     if logging_output_path is None:
         logging_output_path = (
-                os.getenv("EXPERIMENT_OUTPUTS", default=(os.getcwd() + "/Experiments"))
-                + "/"
-                + (model_name if model_name else str(date.today())) + ".log"
+            os.getenv("EXPERIMENT_OUTPUTS", default=(os.getcwd() + "/Experiments"))
+            + "/"
+            + (model_name if model_name else str(date.today()))
+            + ".log"
         )
 
     logger_name = "GreedyTrain.py"
@@ -44,17 +45,17 @@ def get_training_logger(logging_output_path=None, model_name=None) -> logging.Lo
 
 
 def greedy_train(
-        train_data: Tuple[torch.Tensor, torch.Tensor],
-        model: ExactGP,
-        mll: ExactMarginalLogLikelihood,
-        max_iter: int = 50,
-        max_inducing_points: int = 50,
-        model_name: str = None,
-        logging_path: str = None,
-        dtype: torch.dtype = torch.float64,
-        use_max: bool = True,  # If you want to find max or just the first increasing inducing point
-        j: int = 0,  # Use j=0 if you want to find maximizing MLL inducing point over all candidates
-        max_js: int = 10,  # Number of j sets you want to explore without an increasing inducing point before stopping
+    train_data: Tuple[torch.Tensor, torch.Tensor],
+    model: ExactGP,
+    mll: ExactMarginalLogLikelihood,
+    max_iter: int = 50,
+    max_inducing_points: int = 50,
+    model_name: str = None,
+    logging_path: str = None,
+    dtype: torch.dtype = torch.float64,
+    use_max: bool = True,  # If you want to find max or just the first increasing inducing point
+    j: int = 0,  # Use j=0 if you want to find maximizing MLL inducing point over all candidates
+    max_js: int = 10,  # Number of j sets you want to explore without an increasing inducing point before stopping
 ) -> ExactGP:
     # Create model name for logging purposes
     print("Getting logger")
@@ -84,7 +85,7 @@ def greedy_train(
                 inducing_point_candidates = torch.cat(
                     (
                         inducing_point_candidates[:random_index],
-                        inducing_point_candidates[random_index + 1:],
+                        inducing_point_candidates[random_index + 1 :],
                     ),
                     dim=0,
                 )
@@ -117,7 +118,7 @@ def greedy_train(
                             break
                     # We've failed to find a point that increases our Likelihood
                     logger.info(
-                        f"Model:{model_name}, Message:Breaking out of training loop, Iteration:{i}/{max_iter}, Reason:Failed to add an inducing point"
+                        f"{{Model:{model_name}, Message:Breaking out of training loop, Iteration:{i}/{max_iter}, Reason:Failed to add an inducing point}}"
                     )
                     break
 

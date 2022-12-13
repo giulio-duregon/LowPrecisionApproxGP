@@ -168,7 +168,7 @@ DTYPE_FACTORY = {
 
 DATASET_FACTORY = {
     "bikes": load_bikes,
-    "energy": load_bikes,
+    "energy": load_energy,
     "road3d": load_road3d,
 }
 
