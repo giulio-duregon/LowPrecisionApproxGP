@@ -67,7 +67,13 @@ def greedy_train(
     optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
     Js = 0
 
-    with gpytorch.settings.linalg_dtypes(default=dtype):
+    with gpytorch.settings.linalg_dtypes(
+        default=dtype
+    ), gpytorch.settings.cholesky_jitter(
+        float=1e-3, double=1e-5
+    ), gpytorch.settings.cholesky_max_tries(
+        10
+    ):
         for i in range(max_iter):
             # If haven't gotten any inducing points, grab a random one
             if len(inducing_point_candidates) == len(train_x):
