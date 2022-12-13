@@ -172,5 +172,34 @@ DATASET_FACTORY = {
     "road3d": load_road3d,
 }
 
-__all__ = ["util", "model", "DTYPE_FACTORY", "KERNEL_FACTORY", "DATASET_FACTORY", "load_energy", "load_bikes",
-           "load_road3d"]
+
+def normalize(train_data, test_data):
+    normalizing_stats = {}
+    x_train, y_train = train_data
+    x_test, y_test = test_data
+
+    normalizing_stats["x_mean"] = x_train.mean()
+    normalizing_stats["x_std"] = x_train.std()
+    normalizing_stats["y_mean"] = y_train.mean()
+    normalizing_stats["y_std"] = y_train.std()
+
+    x_test = (x_test - normalizing_stats["x_mean"]) / normalizing_stats["x_std"]
+    x_train = (x_train - normalizing_stats["x_mean"]) / normalizing_stats["x_std"]
+
+    y_test = (y_test - normalizing_stats["y_mean"]) / normalizing_stats["y_std"]
+    y_train = (y_train - normalizing_stats["y_mean"]) / normalizing_stats["y_std"]
+
+    return (x_train, y_train), (x_test, y_test), normalizing_stats
+
+
+__all__ = [
+    "util",
+    "model",
+    "DTYPE_FACTORY",
+    "KERNEL_FACTORY",
+    "DATASET_FACTORY",
+    "load_energy",
+    "load_bikes",
+    "load_road3d",
+    "normalize",
+]

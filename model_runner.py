@@ -4,10 +4,6 @@ import os
 from timeit import default_timer as timer
 from datetime import timedelta
 from LowPrecisionApproxGP.util import save_model, GreedyTrain
-from LowPrecisionApproxGP.model.inducing_point_kernel import (
-    VarPrecisionInducingPointKernel,
-)
-from datetime import date
 import numpy as np
 import uuid
 import torch
@@ -163,12 +159,10 @@ def main(logger, **kwargs):
     final_mse = gpytorch.metrics.mean_squared_error(
         trained_pred_dist, y_test, squared=True
     )
-    final_nlpd = gpytorch.metrics.negative_log_predictive_density(
-        trained_pred_dist, y_test
-    )
+
     final_mae = gpytorch.metrics.mean_absolute_error(trained_pred_dist, y_test)
     logger.info(
-        f"Model_ID:{MODEL_RND_ID}, {{'Start_Time':'{start_time}', 'End_Time':'{end_time}', 'Time_Delta_Seconds':'{time_delta}','Time_Delta_Formatted':'{time_delta_formatted}','Mean_Standardized_Log_Test_Loss':'{final_msll}','Mean_Squared_Test_Error':'{final_mse}','Negative_Log_Test_Predictive_Density':'{final_nlpd}','Mean_Absolute_Test_Error':'{final_mae}'}}"
+        f"Model_ID:{MODEL_RND_ID}, {{'Start_Time':'{start_time}', 'End_Time':'{end_time}', 'Time_Delta_Seconds':'{time_delta}','Time_Delta_Formatted':'{time_delta_formatted}','Mean_Standardized_Log_Test_Loss':'{final_msll}','Mean_Squared_Test_Error':'{final_mse}','Mean_Absolute_Test_Error':'{final_mae}'}}"
     )
 
     # Save Model if Applicable
@@ -182,10 +176,9 @@ if __name__ == "__main__":
     # Parse args
     args = vars(parse_args())
 
-    # Set up logging if necessary
-    if args.pop("logging", None):
-        logger = setup_logging(args.pop("logging_output_path", None))
-        logger.info(f"Model_ID:{MODEL_RND_ID},{args}")
+    # Set up logging
+    logger = setup_logging(args.pop("logging_output_path", None))
+    logger.info(f"Model_ID:{MODEL_RND_ID},{args}")
 
     print(f"Running Model ID: {MODEL_RND_ID}")
     # Execute main
