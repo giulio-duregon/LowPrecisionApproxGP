@@ -57,6 +57,12 @@ def main():
                 training_list.append(ast.literal_eval(arg))
 
     training_df = pd.json_normalize(training_list)
+    
+    # Save each
+    training_df.to_csv("Training_data.csv")    
+    index_df.to_csv("Model_Index.csv")
+    
+    # Set index, join, and save
     training_df.set_index("Model", inplace=True)
     index_df.set_index("Model_ID",inplace=True)
     index_df.join(training_df).to_csv("experiment_outputs.csv")
