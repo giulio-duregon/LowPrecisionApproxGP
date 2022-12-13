@@ -69,7 +69,7 @@ def parse_args():
         "--dataset",
         default="bikes",
         type=str,
-        choices=["bikes", "naval", "road3d"],
+        choices=["bikes", "naval", "energy", "protein", "road3d"],
     )
     parser.add_argument(
         "-bk", "--base_kernel_type", default="base", type=str, choices=["base", ""]

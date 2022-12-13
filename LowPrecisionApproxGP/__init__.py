@@ -1,3 +1,4 @@
+from email import header
 from . import util, model
 from gpytorch.kernels import RBFKernel, ScaleKernel, MaternKernel, PeriodicKernel
 import torch
@@ -10,6 +11,7 @@ ENERGY_DATASET_PATH = "data/energy/energy.csv"
 BIKES_DATASET_PATH = "data/bikes/hour.csv"
 ROAD3D_DATASET_PATH = "data/road3d/3droad.txt"
 NAVAL_DATASET_PATH = "data/naval/UCI CBM Dataset/data.txt"
+PROTEIN_DATASET_PATH = "data/protein/casp.csv"
 
 # Helper functions for Kernel Selection (See Factories Below)
 def get_base_kernel():
@@ -68,6 +70,7 @@ def load_bikes(dtype: torch.dtype = torch.float64, test_size: float = 0.2):
 
     return (x_train, y_train), (x_test, y_test)
 
+
 def load_naval(dtype: torch.dtype = torch.float64, test_size: float = 0.2):
     """
     #### Loads bikes dataset from `BIKES_DATASET_PATH`, converts to a `dtype` of type `torch.dtype`
@@ -77,12 +80,12 @@ def load_naval(dtype: torch.dtype = torch.float64, test_size: float = 0.2):
     - If device == 'gpu' returns tuple of dataloaders, (train_loader, test_loader)
     """
     # Load data, get train test splits
-    df = pd.read_csv(NAVAL_DATASET_PATH, sep="  ")
+    df = pd.read_fwf(NAVAL_DATASET_PATH, header=None)
     train, test = train_test_split(df, test_size=test_size)
-    
+
     # Get Relevant Columns
-    y_train, y_test = train.iloc[:,16], test.iloc[:,16]
-    x_train, x_test = train.iloc[:,:16], test.iloc[:,:16]
+    y_train, y_test = train.iloc[:, 16], test.iloc[:, 16]
+    x_train, x_test = train.iloc[:, :16], test.iloc[:, :16]
 
     # Convert to Tensors
     x_train, x_test = torch.Tensor(x_train.to_numpy()), torch.Tensor(x_test.to_numpy())
@@ -107,7 +110,6 @@ def load_naval(dtype: torch.dtype = torch.float64, test_size: float = 0.2):
     return (x_train, y_train), (x_test, y_test)
 
 
-
 def load_energy(dtype: torch.dtype, test_size: float = 0.2):
     """
     #### Loads energy dataset from `ENERGY_DATASET_PATH`, converts to a `dtype` of type `torch.dtype`
@@ -121,11 +123,49 @@ def load_energy(dtype: torch.dtype, test_size: float = 0.2):
     train, test = train_test_split(df, test_size=test_size)
 
     # Get Relevant Columns
-    y_train, y_test = train[["Y1", "Y2"]], test[["Y1", "Y2"]]
-    print(train.columns)
+    y_train, y_test = train["Y1"], test["Y1"]
     x_train, x_test = train.drop(["Unnamed: 0", "Y1", "Y2"], axis=1), test.drop(
         ["Unnamed: 0", "Y1", "Y2"], axis=1
     )
+
+    # Convert to Tensors
+    x_train, x_test = torch.Tensor(x_train.to_numpy()), torch.Tensor(x_test.to_numpy())
+    y_train, y_test = torch.Tensor(y_train.to_numpy()), torch.Tensor(y_test.to_numpy())
+
+    # Convert to relevant dtype
+    x_train, y_train, x_test, y_test = convert_tensors_to_dtype(
+        dtype, x_train, y_train, x_test, y_test
+    )
+
+    if torch.cuda.is_available():
+        from torch.utils.data import TensorDataset, DataLoader
+
+        train_dataset = TensorDataset(x_train, y_train)
+        train_loader = DataLoader(train_dataset, batch_size=1024, shuffle=True)
+
+        test_dataset = TensorDataset(x_test, y_test)
+        test_loader = DataLoader(test_dataset, batch_size=1024, shuffle=False)
+
+        return train_loader, test_loader
+
+    return (x_train, y_train), (x_test, y_test)
+
+
+def load_protein(dtype: torch.dtype = torch.float64, test_size: float = 0.2):
+    """
+    #### Loads protein dataset from `PROTEIN_DATASET_PATH`, converts to a `dtype` of type `torch.dtype`
+    #### Train/Test split is determined by `test_size`
+    ## Return Types
+    - If device == 'cpu' returns tuple of of (train),(test) data i.e. (x_train, y_train), (x_test,y_test)
+    - If device == 'gpu' returns tuple of dataloaders, (train_loader, test_loader)
+    """
+    # Load data, get train test splits
+    df = pd.read_csv(PROTEIN_DATASET_PATH, sep=",")
+    train, test = train_test_split(df, test_size=test_size)
+
+    # Get Relevant Columns
+    y_train, y_test = train.iloc[:, 0], test.iloc[:, 0]
+    x_train, x_test = train.iloc[:, 1:], test.iloc[:, 1:]
 
     # Convert to Tensors
     x_train, x_test = torch.Tensor(x_train.to_numpy()), torch.Tensor(x_test.to_numpy())
@@ -209,26 +249,9 @@ DATASET_FACTORY = {
     "bikes": load_bikes,
     "energy": load_energy,
     "road3d": load_road3d,
+    "naval": load_naval,
+    "protein": load_protein,
 }
-
-
-def normalize(train_data, test_data):
-    normalizing_stats = {}
-    x_train, y_train = train_data
-    x_test, y_test = test_data
-
-    normalizing_stats["x_mean"] = x_train.mean()
-    normalizing_stats["x_std"] = x_train.std()
-    normalizing_stats["y_mean"] = y_train.mean()
-    normalizing_stats["y_std"] = y_train.std()
-
-    x_test = (x_test - normalizing_stats["x_mean"]) / normalizing_stats["x_std"]
-    x_train = (x_train - normalizing_stats["x_mean"]) / normalizing_stats["x_std"]
-
-    y_test = (y_test - normalizing_stats["y_mean"]) / normalizing_stats["y_std"]
-    y_train = (y_train - normalizing_stats["y_mean"]) / normalizing_stats["y_std"]
-
-    return (x_train, y_train), (x_test, y_test), normalizing_stats
 
 
 __all__ = [
@@ -241,5 +264,5 @@ __all__ = [
     "load_naval",
     "load_bikes",
     "load_road3d",
-    "normalize",
+    "load_protein" "normalize",
 ]
