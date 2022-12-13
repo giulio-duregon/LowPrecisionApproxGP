@@ -9,7 +9,7 @@ import pandas as pd
 ENERGY_DATASET_PATH = "data/energy/energy.csv"
 BIKES_DATASET_PATH = "data/bikes/hour.csv"
 ROAD3D_DATASET_PATH = "data/road3d/3droad.txt"
-
+NAVAL_DATASET_PATH = "data/naval/UCI CBM Dataset/data.txt"
 
 # Helper functions for Kernel Selection (See Factories Below)
 def get_base_kernel():
@@ -67,6 +67,45 @@ def load_bikes(dtype: torch.dtype = torch.float64, test_size: float = 0.2):
         return train_loader, test_loader
 
     return (x_train, y_train), (x_test, y_test)
+
+def load_naval(dtype: torch.dtype = torch.float64, test_size: float = 0.2):
+    """
+    #### Loads bikes dataset from `BIKES_DATASET_PATH`, converts to a `dtype` of type `torch.dtype`
+    #### Train/Test split is determined by `test_size`
+    ## Return Types
+    - If device == 'cpu' returns tuple of of (train),(test) data i.e. (x_train, y_train), (x_test,y_test)
+    - If device == 'gpu' returns tuple of dataloaders, (train_loader, test_loader)
+    """
+    # Load data, get train test splits
+    df = pd.read_csv(NAVAL_DATASET_PATH, sep="  ")
+    train, test = train_test_split(df, test_size=test_size)
+    
+    # Get Relevant Columns
+    y_train, y_test = train.iloc[:,16], test.iloc[:,16]
+    x_train, x_test = train.iloc[:,:16], test.iloc[:,:16]
+
+    # Convert to Tensors
+    x_train, x_test = torch.Tensor(x_train.to_numpy()), torch.Tensor(x_test.to_numpy())
+    y_train, y_test = torch.Tensor(y_train.to_numpy()), torch.Tensor(y_test.to_numpy())
+
+    # Convert to relevant dtype
+    x_train, y_train, x_test, y_test = convert_tensors_to_dtype(
+        dtype, x_train, y_train, x_test, y_test
+    )
+
+    if torch.cuda.is_available():
+        from torch.utils.data import TensorDataset, DataLoader
+
+        train_dataset = TensorDataset(x_train, y_train)
+        train_loader = DataLoader(train_dataset, batch_size=1024, shuffle=True)
+
+        test_dataset = TensorDataset(x_test, y_test)
+        test_loader = DataLoader(test_dataset, batch_size=1024, shuffle=False)
+
+        return train_loader, test_loader
+
+    return (x_train, y_train), (x_test, y_test)
+
 
 
 def load_energy(dtype: torch.dtype, test_size: float = 0.2):
@@ -199,6 +238,7 @@ __all__ = [
     "KERNEL_FACTORY",
     "DATASET_FACTORY",
     "load_energy",
+    "load_naval",
     "load_bikes",
     "load_road3d",
     "normalize",

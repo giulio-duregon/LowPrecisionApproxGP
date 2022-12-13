@@ -12,3 +12,7 @@ wget -O "$ROAD3D_FOLDER"/3droad.txt https://archive.ics.uci.edu/ml/machine-learn
 wget -O "$ENERGYFOLDER"/energy.xlsx https://archive.ics.uci.edu/ml/machine-learning-databases/00242/ENB2012_data.xlsx
 python "$SCRIPTS_FOLDER"/xlsx2csv.py -i "$ENERGYFOLDER"/energy.xlsx -o "$ENERGYFOLDER"/energy.csv
 rm "$ENERGYFOLDER"/energy.xlsx
+
+wget -O "$NAVAL_FOLDER"/naval https://archive.ics.uci.edu/ml/machine-learning-databases/00316/UCI%20CBM%20Dataset.zip
+unzip "$NAVAL_FOLDER"/naval -d "$NAVAL_FOLDER"
+rm "$NAVAL_FOLDER"/naval
