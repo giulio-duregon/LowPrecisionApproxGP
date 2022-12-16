@@ -144,12 +144,12 @@ def main(logger, **kwargs):
     end_time = timer()
     time_delta = end_time - start_time
     time_delta_formatted = timedelta(seconds=end_time - start_time)
-
+    with torch.no_grad():
+        final_train_loss = -mll(model(x_train), y_train).mean().item()
     model.eval()
     likelihood.eval()
 
     with torch.no_grad():
-        final_train_loss = -mll(model(x_train), y_train).mean().item()
         trained_pred_dist = likelihood(model(x_test))
         predictive_mean = trained_pred_dist.mean
         lower, upper = trained_pred_dist.confidence_region()
