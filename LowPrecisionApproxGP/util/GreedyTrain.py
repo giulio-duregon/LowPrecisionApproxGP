@@ -36,7 +36,7 @@ def get_training_logger(logging_output_path=None, model_name=None) -> logging.Lo
     consoleHandler = logging.FileHandler(
         logging_output_path, mode="a", encoding="utf-8"
     )
-    consoleHandler.setLevel(logging.INFO)
+    consoleHandler.setLevel(logging.CRITICAL)
     consoleHandler.setFormatter(log_formatter)
 
     # Add console handler to logger

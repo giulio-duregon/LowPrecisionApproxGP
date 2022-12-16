@@ -12,9 +12,6 @@ import gpytorch
 from LowPrecisionApproxGP.model.models import VarPrecisionModel
 import random
 
-np.random.seed(0)
-torch.manual_seed(0)
-random.seed(0)
 
 # Set up unique model id
 MODEL_RND_ID = str(uuid.uuid4())
@@ -90,6 +87,7 @@ def parse_args():
     parser.add_argument("-m", "--use_max", type=bool, default=False)
     parser.add_argument("-j", "--j", type=int, default=0)
     parser.add_argument("-mj", "--max_js", type=int, default=10)
+    parser.add_argument("-sd", "--seed", type=int, default=0)
     return parser.parse_args()
 
 
@@ -151,6 +149,7 @@ def main(logger, **kwargs):
     likelihood.eval()
 
     with torch.no_grad():
+        final_train_loss = -mll(model(x_train), y_train).mean().item()
         trained_pred_dist = likelihood(model(x_test))
         predictive_mean = trained_pred_dist.mean
         lower, upper = trained_pred_dist.confidence_region()
@@ -162,7 +161,7 @@ def main(logger, **kwargs):
 
     final_mae = gpytorch.metrics.mean_absolute_error(trained_pred_dist, y_test)
     logger.info(
-        f"Model_ID:{MODEL_RND_ID}, {{'Start_Time':'{start_time}', 'End_Time':'{end_time}', 'Time_Delta_Seconds':'{time_delta}','Time_Delta_Formatted':'{time_delta_formatted}','Mean_Standardized_Log_Test_Loss':'{final_msll}','Mean_Squared_Test_Error':'{final_mse}','Mean_Absolute_Test_Error':'{final_mae}'}}"
+        f"Model_ID:{MODEL_RND_ID}, {{'Start_Time':'{start_time}', 'End_Time':'{end_time}', 'Time_Delta_Seconds':'{time_delta}','Time_Delta_Formatted':'{time_delta_formatted}','Mean_Standardized_Log_Test_Loss':'{final_msll}','Mean_Squared_Test_Error':'{final_mse}','Mean_Absolute_Test_Error':'{final_mae}','Final_Train_Loss':'{final_train_loss}'}}"
     )
 
     # Save Model if Applicable
@@ -182,4 +181,8 @@ if __name__ == "__main__":
 
     print(f"Running Model ID: {MODEL_RND_ID}")
     # Execute main
+    seed = args.get("seed", 0)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    random.seed(seed)
     main(logger, **args)

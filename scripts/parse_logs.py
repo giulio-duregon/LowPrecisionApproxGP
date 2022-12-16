@@ -21,7 +21,7 @@ def main():
             segments = line.split(",", maxsplit=1)
             model_key, model_id = segments[0].split(":")
             model_key = model_key.strip()
-            
+
             # Check if its in the set, this is necessary as outputs come in 2 lines
             # First line is initialization
             # Second line is time duration for training
@@ -50,21 +50,27 @@ def main():
         for file in os.listdir(experiment_folder)
         if file != "Model_Index.log" and ".log" in file
     ]
+    bad_file_count = 0
     for logs in files:
-        with open(str(experiment_folder) + "/" + logs) as file:
-            for line in file.readlines():
-                arg = line.split("-", maxsplit=3)[3].strip()
-                training_list.append(ast.literal_eval(arg))
-
+        try:
+            with open(str(experiment_folder) + "/" + logs) as file:
+                for line in file.readlines():
+                    arg = line.split("-", maxsplit=3)[3].strip()
+                    training_list.append(ast.literal_eval(arg))
+        except Exception as e:
+            bad_file_count += 1
+            print(f"Excetion {e} found for file: {logs}")
+    print(f"Bad File Count: {bad_file_count}")
+    print(f"Total file count: {len(files)}")
     training_df = pd.json_normalize(training_list)
-    
+
     # Save each
-    training_df.to_csv("Training_data.csv")    
+    training_df.to_csv("Training_data.csv")
     index_df.to_csv("Model_Index.csv")
-    
+
     # Set index, join, and save
     training_df.set_index("Model", inplace=True)
-    index_df.set_index("Model_ID",inplace=True)
+    index_df.set_index("Model_ID", inplace=True)
     index_df.join(training_df).to_csv("experiment_outputs.csv")
 
 
