@@ -66,7 +66,7 @@ def parse_args():
         "--dataset",
         default="bikes",
         type=str,
-        choices=["bikes", "naval", "energy", "protein", "road3d"],
+        choices=["bikes", "energy", "protein", "road3d"],
     )
     parser.add_argument(
         "-bk", "--base_kernel_type", default="base", type=str, choices=["base", ""]
@@ -78,7 +78,7 @@ def parse_args():
         "--dtype",
         default="double",
         type=str,
-        choices=["single", "half", "double"],
+        choices=["single", "double"],
     )
     parser.add_argument("-s", "--save_model", type=bool)
     parser.add_argument("-sfp", "--save_model_file_path", type=str)
