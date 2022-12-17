@@ -16,6 +16,9 @@ import argparse
 import logging
 from timeit import default_timer as timer
 from datetime import timedelta
+import uuid
+
+MODEL_RND_ID = str(uuid.uuid4())
 
 
 def setup_logging(logging_directory_path=None):
@@ -61,6 +64,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     # Set up arguments
+    parser.add_argument("--Model_Type", default="baseline")
     parser.add_argument(
         "-d",
         "--dataset",
@@ -80,6 +84,7 @@ def parse_args():
         choices=["single", "double"],
     )
     parser.add_argument("-l", "--logging", type=bool)
+    parser.add_argument("-s", "--seed", type=int, default=0)
     return parser.parse_args()
 
 
@@ -151,7 +156,7 @@ def main(logger, **kwargs):
     likelihood.eval()
 
     with torch.no_grad():
-        trained_pred_dist = likelihood(model(train_x))
+        trained_pred_dist = likelihood(model(test_x))
         predictive_mean = trained_pred_dist.mean
         lower, upper = trained_pred_dist.confidence_region()
 
@@ -162,7 +167,7 @@ def main(logger, **kwargs):
 
     final_mae = gpytorch.metrics.mean_absolute_error(trained_pred_dist, test_y)
     logger.info(
-        f"Model_ID:'Baseline', {{'Start_Time':'{start_time}', 'End_Time':'{end_time}', 'Time_Delta_Seconds':'{time_delta}','Time_Delta_Formatted':'{time_delta_formatted}','Mean_Standardized_Log_Test_Loss':'{final_msll}','Mean_Squared_Test_Error':'{final_mse}','Mean_Absolute_Test_Error':'{final_mae}','Final_Train_Loss':'{final_train_loss}'}}"
+        f"Model_ID:'{MODEL_RND_ID}', {{'Start_Time':'{start_time}', 'End_Time':'{end_time}', 'Time_Delta_Seconds':'{time_delta}','Time_Delta_Formatted':'{time_delta_formatted}','Mean_Standardized_Log_Test_Loss':'{final_msll}','Mean_Squared_Test_Error':'{final_mse}','Mean_Absolute_Test_Error':'{final_mae}','Final_Train_Loss':'{final_train_loss}'}}"
     )
 
 
@@ -172,7 +177,7 @@ if __name__ == "__main__":
     seed = args.get("seed", 0)
 
     logger = setup_logging(args.pop("logging_output_path", None))
-    logger.info(f"Model_ID:'baseline',{args}")
+    logger.info(f"Model_ID:'{MODEL_RND_ID}',{args}")
 
     # Set seeds
     np.random.seed(seed)
